@@ -26,7 +26,7 @@ az aks get-credentials --name $AKS_NAME -g $RG --overwrite-existing
 
 ## 2. Verify connection to the cluster
 
-```bash
+```powershell
 kubectl get nodes
 # NAME                                STATUS   ROLES   AGE   VERSION
 # aks-nodepool1-32570680-vmss000000   Ready    agent   15m   v1.25.2
@@ -51,14 +51,14 @@ Installing the Secret Store CSI driver will create a Managed Identity. We won't 
 
 ## 3. Create Keyvault resource
 
-```bash
+```powershell
 $AKV_NAME="akv4aks4app07"
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 ```
 
 ## 4. Create keyvault secret
 
-```bash
+```powershell
 $AKV_SECRET_NAME="MySecretPassword"
 az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P@ssw0rd123!"
 # {
@@ -84,7 +84,7 @@ az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P
 
 ## 5. Create user managed identity resource
 
-```bash
+```powershell
 $IDENTITY_NAME="user-identity-aks-4-akv"
 az identity create -g $RG -n $IDENTITY_NAME
 # {
@@ -110,7 +110,7 @@ echo $IDENTITY_CLIENT_ID
 
 ## 6. Assign RBAC role to user managed identity for Keyvault's secret
 
-```bash
+```powershell
 $AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
 echo $AKV_ID
 # /subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourceGroups/rg-aks-demo/providers/Microsoft.KeyVault/vaults/akv4aks4app07
@@ -138,7 +138,7 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
 
 ## 7. Create service account for user managed identity
 
-```bash
+```powershell
 $NAMESPACE_APP="app-07" # can be changed to namespace of your workload
 
 kubectl create namespace $NAMESPACE_APP
@@ -163,7 +163,7 @@ kubectl apply -f service-account.yaml --namespace $NAMESPACE_APP
 
 ## 8. Configure identity federation
 
-```bash
+```powershell
 $FEDERATED_IDENTITY_NAME="aks-federated-identity-app"
 
 az identity federated-credential create -n $FEDERATED_IDENTITY_NAME `
@@ -186,7 +186,7 @@ az identity federated-credential create -n $FEDERATED_IDENTITY_NAME `
 
 ## 9. Configure secret provider class to get secret from Keyvault and to use user managed identity
 
-```bash
+```powershell
 $TENANT_ID=$(az account list --query "[?isDefault].tenantId" -o tsv)
 echo $TENANT_ID
 
@@ -224,7 +224,7 @@ kubectl get secretProviderClass -n $NAMESPACE_APP
 
 ## 10. Test access to Secret with sample deployment
 
-```bash
+```powershell
 @"
 apiVersion: apps/v1
 kind: Deployment
@@ -274,7 +274,7 @@ echo $POD_NAME
 
 And finally, here we can see the password
 
-```bash
+```powershell
 kubectl exec -it $POD_NAME -n $NAMESPACE_APP -- ls /mnt/secrets-store
 # MySecretPassword
 
