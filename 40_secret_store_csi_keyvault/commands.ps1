@@ -4,7 +4,7 @@
 
 # create an AKS cluster
 
-$AKS_RG="rg-aks-demo"
+$AKS_RG="rg-aks-demo-akv"
 $AKS_NAME="aks-cluster"
 
 az group create -n $AKS_RG -l westeurope
@@ -20,7 +20,7 @@ az aks create -g $AKS_RG -n $AKS_NAME `
               --enable-oidc-issuer `
               --enable-workload-identity
 
-az aks get-credentials --name $AKS_NAME -g $RG --overwrite-existing
+az aks get-credentials --name $AKS_NAME -g $AKS_RG --overwrite-existing
 
 # verify connection to the cluster
 kubectl get nodes
@@ -33,14 +33,25 @@ kubectl get pods -n kube-system -l 'app in (secrets-store-csi-driver, secrets-st
 az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv
 # we won't use this (default) managed identity, we'll use our own
 
-# create Keyvault resource
+# create Keyvault resource with RBAC mode and assign RBAC role for admin
 
-$AKV_NAME="akv4aks4app07"
+$AKV_NAME="akv4aks4app071"
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
+
+$AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
+echo $AKV_ID
+
+$CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
+echo $CURRENT_USER_ID
+
+az role assignment create --assignee $CURRENT_USER_ID `
+        --role "Key Vault Administrator" `
+        --scope $AKV_ID
 
 # create keyvault secret
 
 $AKV_SECRET_NAME="MySecretPassword"
+
 az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P@ssw0rd123!"
 
 # create user managed identity resource
@@ -55,9 +66,6 @@ $IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "clientI
 echo $IDENTITY_CLIENT_ID
 
 # assign RBAC role to user managed identity for Keyvault's secret
-
-$AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
-echo $AKV_ID
 
 az role assignment create --assignee $IDENTITY_CLIENT_ID `
         --role "Key Vault Secrets User" `

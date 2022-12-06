@@ -1,8 +1,28 @@
-## Using Secrets Store CSI driver with Workload Identity
+## Using Secrets Store CSI driver with Workload Identity  
 
-Use case: AKS Pod wants to access Secret in Key Vault
+## Introduction  
 
-## 1. Create an AKS cluster
+Kubernetes can save secrets into Secret object. But this object is not encrypted. It is just encoded using base64, which is not secure.
+
+The Azure Key Vault Provider for Secrets Store CSI Driver allows for the integration of an Azure key vault as a secret store with an Azure Kubernetes Service (AKS) cluster via a CSI volume.
+
+The Pod will be able to retrieve the secret from the Secret Store CSI volume, which a secure volume.
+That volume is mounted to the pod and only that pod can access that volume.
+
+In this lab, we'll do the following:
+
+1. Create an AKS cluster with Secret Store CSI driiver and Workload Identity
+2. Verify connection to the cluster
+3. Create Keyvault resource with RBAC mode and assign RBAC role for admin
+4. Create keyvault secret
+5. Create user managed identity resource
+6. Assign RBAC role to user managed identity for Keyvault's secret
+7. Create service account for user managed identity
+8. Configure identity federation
+9. Configure secret provider class to get secret from Keyvault and to use user managed identity
+10. Test access to Secret in keyvault with sample deployment
+
+## 1. Create an AKS cluster with Secret Store CSI driiver and Workload Identity
 
 ```powershell
 $AKS_RG="rg-aks-demo"
@@ -21,7 +41,7 @@ az aks create -g $AKS_RG -n $AKS_NAME `
               --enable-oidc-issuer `
               --enable-workload-identity
 
-az aks get-credentials --name $AKS_NAME -g $RG --overwrite-existing
+az aks get-credentials --name $AKS_NAME -g $AKS_RG --overwrite-existing
 ```
 
 ## 2. Verify connection to the cluster
@@ -49,11 +69,24 @@ az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsPr
 
 Installing the Secret Store CSI driver will create a Managed Identity. We won't use this (default) managed identity, we'll use our own.
 
-## 3. Create Keyvault resource
+## 3. Create Keyvault resource with RBAC mode and assign RBAC role for admin
 
 ```powershell
 $AKV_NAME="akv4aks4app07"
+
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
+
+$AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
+echo $AKV_ID
+# /subscriptions/82f6d75e-85f4-xxxxx-xxx-5dddd9fa8910/resourceGroups/rg-aks-demo-kv/providers/Microsoft.KeyVault/vaults/akv4aks4app017
+
+$CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
+echo $CURRENT_USER_ID
+# 99b281c9-823c-4633-af92-8ac556a19bee
+
+az role assignment create --assignee $CURRENT_USER_ID `
+        --role "Key Vault Administrator" `
+        --scope $AKV_ID
 ```
 
 ## 4. Create keyvault secret
@@ -222,7 +255,7 @@ kubectl get secretProviderClass -n $NAMESPACE_APP
 # akv-spc-app   11s
 ```
 
-## 10. Test access to Secret with sample deployment
+## 10. Test access to Secret in keyvault with sample deployment
 
 ```powershell
 @"
