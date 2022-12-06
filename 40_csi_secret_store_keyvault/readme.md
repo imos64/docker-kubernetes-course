@@ -1,9 +1,10 @@
-# Using Secrets Store CSI driver with Workload Identity
+## Using Secrets Store CSI driver with Workload Identity
 
-# Use case: AKS Pod wants to access Secret in Key Vault
+Use case: AKS Pod wants to access Secret in Key Vault
 
-# create an AKS cluster
+## 1. Create an AKS cluster
 
+```bash
 $AKS_RG="rg-aks-demo"
 $AKS_NAME="aks-cluster"
 
@@ -21,8 +22,11 @@ az aks create -g $AKS_RG -n $AKS_NAME `
               --enable-workload-identity
 
 az aks get-credentials --name $AKS_NAME -g $RG --overwrite-existing
+```
 
-# verify connection to the cluster
+## 2. Verify connection to the cluster
+
+```bash
 kubectl get nodes
 # NAME                                STATUS   ROLES   AGE   VERSION
 # aks-nodepool1-32570680-vmss000000   Ready    agent   15m   v1.25.2
@@ -41,15 +45,20 @@ kubectl get pods -n kube-system -l 'app in (secrets-store-csi-driver, secrets-st
 
 az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv
 # 36bcdfa5-fcd8-4bfe-b735-2d4e576efc3d
-# we won't use this (default) managed identity, we'll use our own
+```
 
-# create Keyvault resource
+Installing the Secret Store CSI driver will create a Managed Identity. We won't use this (default) managed identity, we'll use our own.
 
+## 3. Create Keyvault resource
+
+```bash
 $AKV_NAME="akv4aks4app07"
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
+```
 
-# create keyvault secret
+## 4. Create keyvault secret
 
+```bash
 $AKV_SECRET_NAME="MySecretPassword"
 az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P@ssw0rd123!"
 # {
@@ -71,9 +80,11 @@ az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P
 #   },
 #   "value": "P@ssw0rd123!"
 # }
+```
 
-# create user managed identity resource
+## 5. Create user managed identity resource
 
+```bash
 $IDENTITY_NAME="user-identity-aks-4-akv"
 az identity create -g $RG -n $IDENTITY_NAME
 # {
@@ -95,9 +106,11 @@ echo $IDENTITY_ID
 $IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "clientId" -o tsv)
 echo $IDENTITY_CLIENT_ID
 # a3df640c-cc14-46e3-a377-cfe31aa323b8
+```
 
-# assign RBAC role to user managed identity for Keyvault's secret
+## 6. Assign RBAC role to user managed identity for Keyvault's secret
 
+```bash
 $AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
 echo $AKV_ID
 # /subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourceGroups/rg-aks-demo/providers/Microsoft.KeyVault/vaults/akv4aks4app07
@@ -121,9 +134,11 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
 #     "scope": "/subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourceGroups/rg-aks-demo/providers/Microsoft.KeyVault/vaults/akv4aks4app07",
 #     "type": "Microsoft.Authorization/roleAssignments"
 #   }
+```
 
-# create service account for user managed identity
+## 7. Create service account for user managed identity
 
+```bash
 $NAMESPACE_APP="app-07" # can be changed to namespace of your workload
 
 kubectl create namespace $NAMESPACE_APP
@@ -144,9 +159,11 @@ metadata:
 
 kubectl apply -f service-account.yaml --namespace $NAMESPACE_APP
 # serviceaccount/workload-identity-sa created
+```
 
-# configure identity federation
+## 8. Configure identity federation
 
+```bash
 $FEDERATED_IDENTITY_NAME="aks-federated-identity-app"
 
 az identity federated-credential create -n $FEDERATED_IDENTITY_NAME `
@@ -165,9 +182,11 @@ az identity federated-credential create -n $FEDERATED_IDENTITY_NAME `
 #   "subject": "system:serviceaccount:app-07:workload-identity-sa",
 #   "type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials"
 # }
+```
 
-# configure secret provider class to get secret from Keyvault and to use user managed identity
+## 9. Configure secret provider class to get secret from Keyvault and to use user managed identity
 
+```bash
 $TENANT_ID=$(az account list --query "[?isDefault].tenantId" -o tsv)
 echo $TENANT_ID
 
@@ -201,9 +220,11 @@ kubectl apply -f secretProviderClass.yaml -n $NAMESPACE_APP
 kubectl get secretProviderClass -n $NAMESPACE_APP
 # NAME          AGE
 # akv-spc-app   11s
+```
 
-# test with sample app
+## 10. Test access to Secret with sample deployment
 
+```bash
 @"
 apiVersion: apps/v1
 kind: Deployment
@@ -249,11 +270,14 @@ kubectl get pods -n $NAMESPACE_APP
 $POD_NAME=$(kubectl get pod -l app=nginx-deploy -o jsonpath="{.items[0].metadata.name}" -n $NAMESPACE_APP)
 echo $POD_NAME
 # nginx-deploy-78dcb5b6c5-8n2hk
+```
 
-# and finally, here we can see the password
+And finally, here we can see the password
 
+```bash
 kubectl exec -it $POD_NAME -n $NAMESPACE_APP -- ls /mnt/secrets-store
 # MySecretPassword
 
 kubectl exec -it $POD_NAME -n $NAMESPACE_APP -- cat /mnt/secrets-store/$AKV_SECRET_NAME
 # P@ssw0rd123!
+```
