@@ -4,7 +4,7 @@ Use case: AKS Pod wants to access Secret in Key Vault
 
 ## 1. Create an AKS cluster
 
-```bash
+```powershell
 $AKS_RG="rg-aks-demo"
 $AKS_NAME="aks-cluster"
 
