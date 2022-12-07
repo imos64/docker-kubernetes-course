@@ -9,6 +9,13 @@ The Azure Key Vault Provider for Secrets Store CSI Driver allows for the integra
 The Pod will be able to retrieve the secret from the Secret Store CSI volume, which a secure volume.
 That volume is mounted to the pod and only that pod can access that volume.
 
+Secret Store CSI driver uses 5 options to connect to keyvault:
+1. Service Principal (SPN)
+2. System Managed Identity attached to the VMSS (Nodepool)
+3. User Managed Identity attached to the VMSS (Nodepool)
+4. User Managed Identity attached to the VMSS (Nodepool) with Pod Identity
+5. Workload Identity with Service Account
+
 In this lab, we'll do the following:
 
 1. Create an AKS cluster with Secret Store CSI driiver and Workload Identity
@@ -72,7 +79,7 @@ Installing the Secret Store CSI driver will create a Managed Identity. We won't 
 ## 3. Create Keyvault resource with RBAC mode and assign RBAC role for admin
 
 ```powershell
-$AKV_NAME="akv4aks4app07"
+$AKV_NAME="akv4aks4app079"
 
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 
@@ -119,7 +126,7 @@ az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P
 
 ```powershell
 $IDENTITY_NAME="user-identity-aks-4-akv"
-az identity create -g $RG -n $IDENTITY_NAME
+az identity create -g $AKS_RG -n $IDENTITY_NAME
 # {
 #   "clientId": "a3df640c-cc14-46e3-a377-cfe31aa323b8",
 #   "id": "/subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourcegroups/rg-aks-demo/providers/Microsoft.ManagedIdentity/userAssignedIdentities/user-identity-aks-4-akv",
@@ -132,11 +139,11 @@ az identity create -g $RG -n $IDENTITY_NAME
 #   "type": "Microsoft.ManagedIdentity/userAssignedIdentities"
 # }
 
-$IDENTITY_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "id" -o tsv)
+$IDENTITY_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "id" -o tsv)
 echo $IDENTITY_ID
 # /subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourcegroups/rg-aks-demo/providers/Microsoft.ManagedIdentity/userAssignedIdentities/user-identity-aks-4-akv
 
-$IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "clientId" -o tsv)
+$IDENTITY_CLIENT_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "clientId" -o tsv)
 echo $IDENTITY_CLIENT_ID
 # a3df640c-cc14-46e3-a377-cfe31aa323b8
 ```
@@ -167,6 +174,8 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
 #     "scope": "/subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourceGroups/rg-aks-demo/providers/Microsoft.KeyVault/vaults/akv4aks4app07",
 #     "type": "Microsoft.Authorization/roleAssignments"
 #   }
+
+sleep 60 # wait for role propagation
 ```
 
 ## 7. Create service account for user managed identity

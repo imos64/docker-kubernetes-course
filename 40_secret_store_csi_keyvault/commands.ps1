@@ -4,7 +4,7 @@
 
 # create an AKS cluster
 
-$AKS_RG="rg-aks-demo-akv"
+$AKS_RG="rg-aks-csi-akv"
 $AKS_NAME="aks-cluster"
 
 az group create -n $AKS_RG -l westeurope
@@ -35,7 +35,7 @@ az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsPr
 
 # create Keyvault resource with RBAC mode and assign RBAC role for admin
 
-$AKV_NAME="akv4aks4app071"
+$AKV_NAME="akv4aks4app0179"
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 
 $AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
@@ -57,12 +57,13 @@ az keyvault secret set --vault-name $AKV_NAME --name $AKV_SECRET_NAME --value "P
 # create user managed identity resource
 
 $IDENTITY_NAME="user-identity-aks-4-akv"
-az identity create -g $RG -n $IDENTITY_NAME
 
-$IDENTITY_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "id" -o tsv)
+az identity create -g $AKS_RG -n $IDENTITY_NAME
+
+$IDENTITY_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "id" -o tsv)
 echo $IDENTITY_ID
 
-$IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query "clientId" -o tsv)
+$IDENTITY_CLIENT_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "clientId" -o tsv)
 echo $IDENTITY_CLIENT_ID
 
 # assign RBAC role to user managed identity for Keyvault's secret
@@ -70,6 +71,8 @@ echo $IDENTITY_CLIENT_ID
 az role assignment create --assignee $IDENTITY_CLIENT_ID `
         --role "Key Vault Secrets User" `
         --scope $AKV_ID
+
+sleep 60 # wait for role propagation
 
 # create service account for user managed identity
 
