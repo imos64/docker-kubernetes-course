@@ -372,9 +372,11 @@ kubectl describe secret $TLS_SECRET -n $NAMESPACE_APP
 # ====
 # tls.crt:  1342 bytes
 # tls.key:  1675 bytes
+```
 
-# 9. Install Nginx Ingress Controller with custom name
+## 9. Install Nginx Ingress Controller with custom name into a dedicated namespace
 
+```powershell
 $NAMESPACE_INGRESS="ingress-nginx-app-07"
 
 kubectl create namespace $NAMESPACE_INGRESS
@@ -403,8 +405,11 @@ helm upgrade --install ingress-nginx-app-07 ingress-nginx/ingress-nginx `
      --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux `
      --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz `
      -f ingress-controller-values.yaml
+```
 
-# get the ingress class resources, note we already have one deployed in another demo
+## get the ingress class resources, note we already have one deployed in another demo
+
+```powershell
 kubectl get ingressclass
 # NAME           CONTROLLER                    PARAMETERS   AGE
 # nginx-app-07   k8s.io/ingress-nginx-app-07   <none>       50s
@@ -417,17 +422,23 @@ kubectl get pods,svc -n $NAMESPACE_INGRESS
 # NAME                                                TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
 # service/ingress-nginx-app-07-controller             LoadBalancer   10.0.93.183    20.101.208.164   80:32033/TCP,443:32039/TCP   15m
 # service/ingress-nginx-app-07-controller-admission   ClusterIP      10.0.151.181   <none>           443/TCP                      15m
+```
 
-# capture ingress, public IP (Azure Public IP created)
+## Capture ingress, public IP (Azure Public IP created)
+
+```powershell
 $INGRESS_PUPLIC_IP=$(kubectl get services ingress-$INGRESS_CLASS_NAME-controller -n $NAMESPACE_INGRESS -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo $INGRESS_PUPLIC_IP
 # 20.101.208.164
+```
 
-# 10. Configure Ingress' Public IP with DNS Name
+## 10. Configure Ingress' Public IP with DNS Name
 
-# 10.1. Option 1: Name to associate with Azure Public IP address
+## 10.1. Option 1: Name to associate with Azure Public IP address
 
-# Get the resource-id of the public IP
+## Get the resource-id of the public IP
+
+```powershell
 $NODE_RG=$(az aks show -g $AKS_RG -n $AKS_NAME --query nodeResourceGroup -o tsv)
 echo $NODE_RG
 # MC_rg-aks-demo_aks-cluster_westeurope
@@ -435,17 +446,23 @@ echo $NODE_RG
 $AZURE_PUBLIC_IP_ID=$(az network public-ip list -g $NODE_RG --query "[?ipAddress!=null]|[?contains(ipAddress, '$INGRESS_PUPLIC_IP')].[id]" -o tsv)
 echo $AZURE_PUBLIC_IP_ID
 # /subscriptions/82f6d75e-85f4-xxxx-xxxx-5dddd9fa8910/resourceGroups/mc_rg-aks-demo_aks-cluster_westeurope/providers/Microsoft.Network/publicIPAddresses/kubernetes-a67a81403ec5e4ebca58049d0ebfda3c
+```
 
-# Update public IP address with DNS name
+## Update public IP address with DNS name
+
+```powershell
 az network public-ip update --ids $AZURE_PUBLIC_IP_ID --dns-name $DNS_NAME
 $DOMAIN_NAME_FQDN=$(az network public-ip show --ids $AZURE_PUBLIC_IP_ID --query='dnsSettings.fqdn' -o tsv)
 # DOMAIN_NAME_FQDN=$(az network public-ip show -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --query='dnsSettings.fqdn')
 echo $DOMAIN_NAME_FQDN
 # "aks-app-07.westeurope.cloudapp.azure.com"
+```
 
-# 10.2. Option 2: Name to associate with Azure DNS Zone
+## 10.2. Option 2: Name to associate with Azure DNS Zone
 
-# Add an A record to your DNS zone
+## Add an A record to your DNS zone
+
+```powershell
 az network dns record-set a add-record `
     --resource-group rg-houssem-cloud-dns `
     --zone-name "houssem.cloud" `
@@ -456,9 +473,11 @@ az network dns record-set a add-record `
 $DOMAIN_NAME_FQDN=$DNS_NAME.houssem.cloud
 echo $DOMAIN_NAME_FQDN
 # aks-app-03.houssem.cloud
+```
 
-# 11. Deploy Ingress resource taht will retrieve TLS certificate from secret
+## 11. Deploy Ingress resource taht will retrieve TLS certificate from secret
 
+```powershell
 @"
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -527,15 +546,22 @@ spec:
 "@ > hello-world-ingress.yaml
 
 kubectl apply -f hello-world-ingress.yaml --namespace $NAMESPACE_APP
+```
 
+## Check Ingress created
+
+```powershell
 kubectl get ingress --namespace $NAMESPACE_APP
 # NAME                         CLASS          HOSTS                                      ADDRESS   PORTS     AGE
 # hello-world-ingress          nginx-app-07   aks-app-07.westeurope.cloudapp.azure.com             80, 443   12s
 # hello-world-ingress-static   nginx-app-07   aks-app-07.westeurope.cloudapp.azure.com             80, 443   11s
+```
 
-# 12. Check app is working with HTTPS
+## 12. Check app is working with HTTPS
 
-# check tls certificate
+## check tls certificate
+
+```powershell
 curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NAME_FQDN
 # MAIN_NAME_FQDN
 # * Added aks-app-07.westeurope.cloudapp.azure.com:443:20.238.249.157 to DNS cache
@@ -624,3 +650,4 @@ curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NA
 # </html>
 
 # default-backend="https", ingress nginx
+```
