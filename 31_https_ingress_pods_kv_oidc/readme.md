@@ -38,7 +38,7 @@ kubectl get nodes
 # aks-nodepool1-42043316-vmss000001   Ready    agent   5m26s   v1.25.2
 ```
 
-## get issuer URL
+Get issuer URL
 
 ```powershell
 $AKS_OIDC_ISSUER=$(az aks show -n $AKS_NAME -g $AKS_RG --query "oidcIssuerProfile.issuerUrl" -otsv)
@@ -46,7 +46,7 @@ echo $AKS_OIDC_ISSUER
 # https://westeurope.oic.prod-aks.azure.com/16b3c013-d300-468d-ac64-7eda0820b6d3/842120d9-99dd-44dc-be68-91f78bdd41ed/
 ```
 
-## Check deloyment success for Secret Store CSI
+Check deloyment success for Secret Store CSI
 
 ```powershell
 kubectl get pods -n kube-system -l 'app in (secrets-store-csi-driver, secrets-store-provider-azure)'
@@ -99,7 +99,7 @@ $CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
 echo $CURRENT_USER_ID
 ```
 
-## assign admin role to my self
+Assign admin role to my self
 
 ```powershell
 az role assignment create --assignee $CURRENT_USER_ID `
@@ -129,7 +129,7 @@ echo $IDENTITY_CLIENT_ID
 # a908d131-d1f3-4f44-8b9e-c5d21110eb84
 ```
 
-## assign role "Key Vault Secrets User" on Keyvault to managed identity
+Assign role "Key Vault Secrets User" on Keyvault to managed identity
 
 ```powershell
 az role assignment create --assignee $IDENTITY_CLIENT_ID `
@@ -288,7 +288,7 @@ kubectl apply -f aks-helloworld-one.yaml --namespace $NAMESPACE_APP
 # service/aks-helloworld-one created
 ```
 
-## Deploy a second instance
+Deploy a second instance
 
 ```powershell
 @"
@@ -344,7 +344,7 @@ kubectl apply -f aks-helloworld-two.yaml --namespace $NAMESPACE_APP
 # service/aks-helloworld-two created
 ```
 
-## Check the app was deployed successfully
+Check the app was deployed successfully
 
 ```powershell
 kubectl get pods,svc -n $NAMESPACE_APP
@@ -357,7 +357,7 @@ kubectl get pods,svc -n $NAMESPACE_APP
 # service/aks-helloworld-two   ClusterIP   10.0.176.49   <none>        80/TCP    32s
 ```
 
-## Check the secret should have been created by the deployment
+Check the secret should have been created by the deployment
 
 ```powershell
 kubectl describe secret $TLS_SECRET -n $NAMESPACE_APP
@@ -407,7 +407,7 @@ helm upgrade --install ingress-nginx-app-07 ingress-nginx/ingress-nginx `
      -f ingress-controller-values.yaml
 ```
 
-## get the ingress class resources, note we already have one deployed in another demo
+Get the ingress class resources, note we already have one deployed in another demo
 
 ```powershell
 kubectl get ingressclass
@@ -424,7 +424,7 @@ kubectl get pods,svc -n $NAMESPACE_INGRESS
 # service/ingress-nginx-app-07-controller-admission   ClusterIP      10.0.151.181   <none>           443/TCP                      15m
 ```
 
-## Capture ingress, public IP (Azure Public IP created)
+Capture ingress, public IP (Azure Public IP created)
 
 ```powershell
 $INGRESS_PUPLIC_IP=$(kubectl get services ingress-$INGRESS_CLASS_NAME-controller -n $NAMESPACE_INGRESS -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -436,7 +436,7 @@ echo $INGRESS_PUPLIC_IP
 
 ## 10.1. Option 1: Name to associate with Azure Public IP address
 
-## Get the resource-id of the public IP
+Get the resource-id of the public IP
 
 ```powershell
 $NODE_RG=$(az aks show -g $AKS_RG -n $AKS_NAME --query nodeResourceGroup -o tsv)
@@ -448,7 +448,7 @@ echo $AZURE_PUBLIC_IP_ID
 # /subscriptions/82f6d75e-85f4-xxxx-xxxx-5dddd9fa8910/resourceGroups/mc_rg-aks-demo_aks-cluster_westeurope/providers/Microsoft.Network/publicIPAddresses/kubernetes-a67a81403ec5e4ebca58049d0ebfda3c
 ```
 
-## Update public IP address with DNS name
+Update public IP address with DNS name
 
 ```powershell
 az network public-ip update --ids $AZURE_PUBLIC_IP_ID --dns-name $DNS_NAME
@@ -460,7 +460,7 @@ echo $DOMAIN_NAME_FQDN
 
 ## 10.2. Option 2: Name to associate with Azure DNS Zone
 
-## Add an A record to your DNS zone
+Add an A record to your DNS zone
 
 ```powershell
 az network dns record-set a add-record `
@@ -548,7 +548,7 @@ spec:
 kubectl apply -f hello-world-ingress.yaml --namespace $NAMESPACE_APP
 ```
 
-## Check Ingress created
+Check Ingress created
 
 ```powershell
 kubectl get ingress --namespace $NAMESPACE_APP
