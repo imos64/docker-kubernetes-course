@@ -5,6 +5,15 @@
 This lab aims to provide a guide on how to secure Ingress traffic using TLS certificate stored in Azure Keyvault.
 The certificate will be retrieved using Secret Store CSI and Workload Identity.
 
+The flow will be the following:
+1. Operator creates TLS certificate and stores it in Keyvault.
+2. Secret Store CSI provider pull TLS certificate from Keyvault.
+3. Secret Store CSI driver sync TLS certificate into k8s Secret.
+4. Ingress controller uses the TLS cert from the k8s secret.
+5. Operator can rotate the TLS certificate in Keyvault.
+6. Secret Store CSI driver sync TLS certificate into k8s Secret.
+7. Ingress controller will ‘hot reload’ the cert (no reboot).
+
 <img src="media/tls-ingress-keyvault-oidc.png">
 
 The lab steps:
