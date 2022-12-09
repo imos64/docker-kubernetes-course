@@ -5,6 +5,8 @@
 This lab aims to provide a guide on how to secure Ingress traffic using TLS certificate stored in Azure Keyvault.
 The certificate will be retrieved using Secret Store CSI and Workload Identity.
 
+<img src="media/tls-ingress-keyvault-oidc.png">
+
 More details: https://azure.github.io/secrets-store-csi-driver-provider-azure/docs/configurations/ingress-tls/#deploy-an-ingress-resource-referencing-the-secret-created-by-the-csi-driver
 
 ## 1. Create an AKS cluster with Secret Store CSI and Workload Identity enabled
