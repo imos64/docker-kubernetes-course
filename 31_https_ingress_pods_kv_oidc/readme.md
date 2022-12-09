@@ -141,7 +141,7 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
 
 <img src="media/identity-role-assignment.png">
 
-## 6. Create Service Account for the app nad federated credential
+## 6. Create Service Account for the app that need federated credential
 
 ```powershell
 $NAMESPACE_APP="app-07" # can be changed to namespace of your workload
