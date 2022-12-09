@@ -507,24 +507,7 @@ curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NA
 # * Hostname aks-app-07.westeurope.cloudapp.azure.com was found in DNS cache
 # *   Trying 20.238.249.157:443...
 # * Connected to aks-app-07.westeurope.cloudapp.azure.com (20.238.249.157) port 443 (#0)
-# * ALPN, offering h2
-# * ALPN, offering http/1.1
-# * TLSv1.0 (OUT), TLS header, Certificate Status (22):
-# * TLSv1.3 (OUT), TLS handshake, Client hello (1):
-# * TLSv1.2 (IN), TLS header, Certificate Status (22):
-# * TLSv1.3 (IN), TLS handshake, Server hello (2):
-# * TLSv1.2 (IN), TLS header, Finished (20):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Certificate (11):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
 # * TLSv1.3 (IN), TLS handshake, CERT verify (15):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Finished (20):
-# * TLSv1.2 (OUT), TLS header, Finished (20):
-# * TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
 # * TLSv1.3 (OUT), TLS handshake, Finished (20):
 # * SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
 # * ALPN, server accepted to use h2
@@ -534,59 +517,5 @@ curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NA
 # *  expire date: Nov 25 11:12:44 2023 GMT
 # *  issuer: CN=aks-app-07.westeurope.cloudapp.azure.com; O=aks-ingress-tls
 # *  SSL certificate verify result: self-signed certificate (18), continuing anyway.
-# * Using HTTP2, server supports multiplexing
-# * Connection state changed (HTTP/2 confirmed)
-# * Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * Using Stream ID: 1 (easy handle 0x564b2b7b5e80)
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# > GET / HTTP/2
-# > Host: aks-app-07.westeurope.cloudapp.azure.com
-# > user-agent: curl/7.81.0
-# > accept: */*
-# >
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
-# * old SSL session ID is stale, removing
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * Connection state changed (MAX_CONCURRENT_STREAMS == 128)!
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# < HTTP/2 200
-# < date: Fri, 25 Nov 2022 12:23:00 GMT
-# < content-type: text/html; charset=utf-8
-# < content-length: 629
-# < strict-transport-security: max-age=15724800; includeSubDomains
-# <
-# <!DOCTYPE html>
-# <html xmlns="http://www.w3.org/1999/xhtml">
-# <head>
-#     <link rel="stylesheet" type="text/css" href="/static/default.css">
-#     <title>Welcome to Azure Kubernetes Service (AKS)</title>
-
-#     <script language="JavaScript">
-#         function send(form){
-#         }
-#     </script>
-
-# </head>
-# <body>
-#     <div id="container">
-#         <form id="form" name="form" action="/"" method="post"><center>
-#         <div id="logo">Welcome to Azure Kubernetes Service (AKS)</div>
-#         <div id="space"></div>
-#         <img src="/static/acs.png" als="acs logo">
-#         <div id="form">
-#         </div>
-#     </div>
-# </body>
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * Connection #0 to host aks-app-07.westeurope.cloudapp.azure.com left intact
-# </html>
-
-# default-backend="https", ingress nginx
+# ...
 ```
