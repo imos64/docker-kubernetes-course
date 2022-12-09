@@ -7,6 +7,21 @@ The certificate will be retrieved using Secret Store CSI and Workload Identity.
 
 <img src="media/tls-ingress-keyvault-oidc.png">
 
+The lab steps:
+1. Create an AKS cluster with Secret Store CSI and Workload Identity enabled
+2. Create tls certificate for ingress
+3. Create a Keyvault instance
+4. Import the TLS certificate into a keyvault certificate
+5. Create a user managed Identity
+6. Create Service Account for the app that need federated credential
+7. Configure federated credential
+8. Configure SecretProviderClass to retrieve keyvault secret and save it into kubernetes secret
+9. Create deployment that uses the service account and secret store CSI driver
+10. Install Nginx Ingress Controller with custom name into a dedicated namespace
+11. Configure Ingress' Public IP with DNS Name
+12. Deploy Ingress resource taht will retrieve TLS certificate from secret
+13. Check app is working with HTTPS
+
 More details: https://azure.github.io/secrets-store-csi-driver-provider-azure/docs/configurations/ingress-tls/#deploy-an-ingress-resource-referencing-the-secret-created-by-the-csi-driver
 
 ## 1. Create an AKS cluster with Secret Store CSI and Workload Identity enabled
@@ -324,7 +339,7 @@ kubectl describe secret $TLS_SECRET -n $NAMESPACE_APP
 # tls.key:  1675 bytes
 ```
 
-## 9. Install Nginx Ingress Controller with custom name into a dedicated namespace
+## 10. Install Nginx Ingress Controller with custom name into a dedicated namespace
 
 ```powershell
 $NAMESPACE_INGRESS="ingress-nginx-app-07"
@@ -382,9 +397,9 @@ echo $INGRESS_PUPLIC_IP
 # 20.101.208.164
 ```
 
-## 10. Configure Ingress' Public IP with DNS Name
+## 11. Configure Ingress' Public IP with DNS Name
 
-## 10.1. Option 1: Name to associate with Azure Public IP address
+## 11.1. Option 1: Name to associate with Azure Public IP address
 
 Get the resource-id of the public IP
 
@@ -410,7 +425,7 @@ echo $DOMAIN_NAME_FQDN
 
 <img src="media/public-ip.png">
 
-## 10.2. Option 2: Name to associate with Azure DNS Zone
+## 11.2. Option 2: Name to associate with Azure DNS Zone
 
 Add an A record to your DNS zone
 
@@ -427,7 +442,7 @@ echo $DOMAIN_NAME_FQDN
 # aks-app-03.houssem.cloud
 ```
 
-## 11. Deploy Ingress resource taht will retrieve TLS certificate from secret
+## 12. Deploy Ingress resource taht will retrieve TLS certificate from secret
 
 ```powershell
 @"
@@ -468,7 +483,7 @@ kubectl get ingress --namespace $NAMESPACE_APP
 # hello-world-ingress-static   nginx-app-07   aks-app-07.westeurope.cloudapp.azure.com             80, 443   11s
 ```
 
-## 12. Check app is working with HTTPS
+## 13. Check app is working with HTTPS
 
 ## check tls certificate
 
