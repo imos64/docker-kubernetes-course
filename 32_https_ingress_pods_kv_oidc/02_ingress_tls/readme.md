@@ -3,21 +3,18 @@
 Create an AKS cluster
 
 ```bash
-RG="rg-aks-demo-tls"
-AKS="aks-cluster"
+AKS_RG="rg-aks-demo-tls"
+AKS_NAME="aks-cluster"
 
-az group create -n $RG -l westeurope
+az group create -n $AKS_RG -l westeurope
 
-az aks create -g $RG -n $AKS \
+az aks create -g $AKS_RG -n $AKS_NAME \
               --kubernetes-version "1.25.2" \
               --enable-managed-identity \
               --node-count 2 \
-              --network-plugin azure \
-              --enable-addons azure-keyvault-secrets-provider \
-              --rotation-poll-interval 5m \
-              --enable-secret-rotation
+              --network-plugin azure
 
-az aks get-credentials --name $AKS -g $RG --overwrite-existing
+az aks get-credentials --name $AKS_NAME -g $AKS_RG --overwrite-existing
 
 kubectl get nodes
 
@@ -229,7 +226,7 @@ echo $INGRESS_PUPLIC_IP
 DNS_NAME="app-07" # this name should be unique for the subdomain: <unique DNS NAME>.westeurope.cloudapp.azure.com
 
 # Get the resource-id of the public IP
-NODE_RG=$(az aks show -g $RG -n $AKS --query nodeResourceGroup -o tsv)
+NODE_RG=$(az aks show -g $AKS_RG -n $AKS_NAME --query nodeResourceGroup -o tsv)
 echo $NODE_RG
 # MC_rg-aks-demo_aks-cluster_westeurope
 

@@ -35,7 +35,7 @@ az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsPr
 
 # create Keyvault resource with RBAC mode and assign RBAC role for admin
 
-$AKV_NAME="akv4aks4app0179"
+$AKV_NAME="akv4aks4app0135"
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 
 $AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
@@ -175,6 +175,8 @@ spec:
 "@ > nginx-pod.yaml
 
 kubectl apply -f nginx-pod.yaml -n $NAMESPACE_APP
+
+sleep 5
 
 kubectl get pods -n $NAMESPACE_APP
 

@@ -212,7 +212,7 @@ kind: Ingress
 metadata:
   name: hello-world-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /\$2
+    nginx.ingress.kubernetes.io/rewrite-target: /`$2
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
@@ -253,7 +253,7 @@ metadata:
   name: hello-world-ingress-static
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /static/\$2
+    nginx.ingress.kubernetes.io/rewrite-target: /static/`$2
 spec:
   ingressClassName: $INGRESS_CLASS_NAME # nginx
   tls:

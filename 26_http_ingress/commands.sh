@@ -1,12 +1,12 @@
 # create an AKS cluster
-RG="rg-aks-we"
-AKS="aks-cluster"
+AKS_RG="AKS_RG-aks-we"
+AKS_NAME="aks-cluster"
 
-az group create -n $RG -l westeurope
+az group create -n $AKS_RG -l westeurope
 
-az aks create -g $RG -n $AKS --network-plugin azure --kubernetes-version "1.25.2" --node-count 2
+az aks create -g $AKS_RG -n $AKS_NAME --network-plugin azure --kubernetes-version "1.25.2" --node-count 2
 
-az aks get-credentials --name $AKS -g $RG --overwrite-existing
+az aks get-credentials -n $AKS_NAME -g $AKS_RG --overwrite-existing
 
 # verify connection to the cluster
 kubectl get nodes
@@ -129,7 +129,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /\$2
+    nginx.ingress.kubernetes.io/rewrite-taAKS_RGet: /\$2
 spec:
   ingressClassName: nginx
   rules:
@@ -163,7 +163,7 @@ metadata:
   name: hello-world-ingress-static
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /static/\$2
+    nginx.ingress.kubernetes.io/rewrite-taAKS_RGet: /static/\$2
 spec:
   ingressClassName: nginx
   rules:
@@ -214,7 +214,7 @@ echo $AZURE_PUBLIC_IP_ID
 # Update public IP address with DNS name
 az network public-ip update --ids $AZURE_PUBLIC_IP_ID --dns-name $DNS_NAME
 DOMAIN_NAME_FQDN=$(az network public-ip show --ids $AZURE_PUBLIC_IP_ID --query='dnsSettings.fqdn' -o tsv)
-# DOMAIN_NAME_FQDN=$(az network public-ip show -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --query='dnsSettings.fqdn')
+# DOMAIN_NAME_FQDN=$(az network public-ip show -g MC_AKS_RG-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --query='dnsSettings.fqdn')
 echo $DOMAIN_NAME_FQDN
 # aks-app-01.westeurope.cloudapp.azure.com
 
@@ -223,12 +223,12 @@ echo $DOMAIN_NAME_FQDN
 
 # Add an A record to your DNS zone
 az network dns record-set a add-record \
-    --resource-group rg-houssem-cloud-dns \
+    --resource-group AKS_RG-houssem-cloud-dns \
     --zone-name "houssem.cloud" \
     --record-set-name "*" \
     --ipv4-address $INGRESS_PUPLIC_IP
 
-# az network public-ip update -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --dns-name $DNS_NAME
+# az network public-ip update -g MC_AKS_RG-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --dns-name $DNS_NAME
 DOMAIN_NAME_FQDN=$DNS_NAME.houssem.cloud
 echo $DOMAIN_NAME_FQDN
 # aks-app-03.houssem.cloud
