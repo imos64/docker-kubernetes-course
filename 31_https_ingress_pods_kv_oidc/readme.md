@@ -113,6 +113,8 @@ az role assignment create --assignee $CURRENT_USER_ID `
 az keyvault certificate import --vault-name $AKV_NAME -n $CERT_NAME -f "$CERT_NAME.pfx"
 ```
 
+<img src="media/keyvault-cert.png">
+
 ## 5. Create a user managed Identity
 
 ```powershell
@@ -136,6 +138,8 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
         --role "Key Vault Secrets User" `
         --scope $AKV_ID
 ```
+
+<img src="media/identity-role-assignment.png">
 
 ## 6. Create Service Account for the app nad federated credential
 
@@ -182,7 +186,10 @@ az identity federated-credential create -n $FEDERATED_IDENTITY_NAME -g $AKS_RG `
 #   "subject": "system:serviceaccount:ingress-nginx-app-07:workload-identity-sa",
 #   "type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials"
 # }
+
 ```
+
+<img src="media/federated-cred.png">
 
 ## 8. Configure SecretProviderClass to retrieve keyvault secret and save it into kubernetes secret
 
@@ -239,26 +246,23 @@ kubectl get secretProviderClass -n $NAMESPACE_APP
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aks-helloworld-one
+  name: app-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aks-helloworld-one
+      app: app-deploy
   template:
     metadata:
       labels:
-        app: aks-helloworld-one
+        app: app-deploy
     spec:
       serviceAccountName: $SERVICE_ACCOUNT_NAME
       containers:
-      - name: aks-helloworld-one
-        image: mcr.microsoft.com/azuredocs/aks-helloworld:v1
+      - name: app-deploy
+        image: mcr.microsoft.com/dotnet/samples:aspnetapp
         ports:
         - containerPort: 80
-        env:
-        - name: TITLE
-          value: "Welcome to Azure Kubernetes Service (AKS)"
         volumeMounts:
         - name: secrets-store-inline
           mountPath: "/mnt/secrets-store"
@@ -274,74 +278,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: aks-helloworld-one  
+  name: app-svc
 spec:
   type: ClusterIP
   ports:
   - port: 80
   selector:
-    app: aks-helloworld-one
-"@ > aks-helloworld-one.yaml
+    app: app-deploy
+"@ > app-deploy-svc.yaml
 
-kubectl apply -f aks-helloworld-one.yaml --namespace $NAMESPACE_APP
-# deployment.apps/aks-helloworld-one created
-# service/aks-helloworld-one created
-```
-
-Deploy a second instance
-
-```powershell
-@"
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: aks-helloworld-two
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: aks-helloworld-two
-  template:
-    metadata:
-      labels:
-        app: aks-helloworld-two
-    spec:
-      serviceAccountName: $SERVICE_ACCOUNT_NAME
-      containers:
-      - name: aks-helloworld-two
-        image: mcr.microsoft.com/azuredocs/aks-helloworld:v1
-        ports:
-        - containerPort: 80
-        env:
-        - name: TITLE
-          value: "AKS Ingress Demo"
-        volumeMounts:
-        - name: secrets-store-inline
-          mountPath: "/mnt/secrets-store"
-          readOnly: true
-      volumes:
-        - name: secrets-store-inline
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: $SECRET_PROVIDER_CLASS
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: aks-helloworld-two  
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-  selector:
-    app: aks-helloworld-two
-"@ > aks-helloworld-two.yaml
-
-kubectl apply -f aks-helloworld-two.yaml --namespace $NAMESPACE_APP
-# deployment.apps/aks-helloworld-two created
-# service/aks-helloworld-two created
+kubectl apply -f app-deploy-svc.yaml --namespace $NAMESPACE_APP
+# deployment.apps/app-deploy created
+# service/app-svc created
 ```
 
 Check the app was deployed successfully
@@ -458,6 +406,8 @@ echo $DOMAIN_NAME_FQDN
 # "aks-app-07.westeurope.cloudapp.azure.com"
 ```
 
+<img src="media/public-ip.png">
+
 ## 10.2. Option 2: Name to associate with Azure DNS Zone
 
 Add an A record to your DNS zone
@@ -482,10 +432,8 @@ echo $DOMAIN_NAME_FQDN
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: hello-world-ingress
+  name: app-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /`$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: $INGRESS_CLASS_NAME # nginx
@@ -497,55 +445,16 @@ spec:
   - host: $DOMAIN_NAME_FQDN
     http:
       paths:
-      - path: /hello-world-one(/|$)(.*)
+      - path: /
         pathType: Prefix
         backend:
           service:
-            name: aks-helloworld-one
+            name: app-svc
             port:
               number: 80
-      - path: /hello-world-two(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: aks-helloworld-two
-            port:
-              number: 80
-      - path: /(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: aks-helloworld-one
-            port:
-              number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: hello-world-ingress-static
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /static/`$2
-spec:
-  ingressClassName: $INGRESS_CLASS_NAME # nginx
-  tls:
-  - hosts:
-    - $DOMAIN_NAME_FQDN
-    secretName: $TLS_SECRET
-  rules:
-  - host: $DOMAIN_NAME_FQDN
-    http:
-      paths:
-      - path: /static(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: aks-helloworld-one
-            port: 
-              number: 80
-"@ > hello-world-ingress.yaml
+"@ > app-ingress.yaml
 
-kubectl apply -f hello-world-ingress.yaml --namespace $NAMESPACE_APP
+kubectl apply -f app-ingress.yaml --namespace $NAMESPACE_APP
 ```
 
 Check Ingress created
@@ -560,6 +469,10 @@ kubectl get ingress --namespace $NAMESPACE_APP
 ## 12. Check app is working with HTTPS
 
 ## check tls certificate
+
+Open the app in the browser and check the link.
+
+<img src="media/app-browser.png">
 
 ```powershell
 curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NAME_FQDN
