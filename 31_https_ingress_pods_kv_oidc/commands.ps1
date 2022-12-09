@@ -1,6 +1,7 @@
 # https://azure.github.io/secrets-store-csi-driver-provider-azure/docs/configurations/ingress-tls/#deploy-an-ingress-resource-referencing-the-secret-created-by-the-csi-driver
 
 # 1. Create an AKS cluster with Secret Store CSI and Workload Identity enabled
+
 $AKS_RG="rg-aks-demo"
 $AKS_NAME="aks-cluster"
 
@@ -20,27 +21,18 @@ az aks create -g $AKS_RG -n $AKS_NAME `
 az aks get-credentials --name $AKS_NAME -g $AKS_RG --overwrite-existing
 
 # 1.1. Verify connection to the cluster
+
 kubectl get nodes
-# NAME                                STATUS   ROLES   AGE     VERSION
-# aks-nodepool1-42043316-vmss000000   Ready    agent   5m23s   v1.25.2
-# aks-nodepool1-42043316-vmss000001   Ready    agent   5m26s   v1.25.2
 
 # get issuer URL
 $AKS_OIDC_ISSUER=$(az aks show -n $AKS_NAME -g $AKS_RG --query "oidcIssuerProfile.issuerUrl" -otsv)
 echo $AKS_OIDC_ISSUER
-# https://westeurope.oic.prod-aks.azure.com/16b3c013-d300-468d-ac64-7eda0820b6d3/842120d9-99dd-44dc-be68-91f78bdd41ed/
 
 # Check deloyment success for Secret Store CSI
 kubectl get pods -n kube-system -l 'app in (secrets-store-csi-driver, secrets-store-provider-azure)'
-# NAME                                     READY   STATUS    RESTARTS   AGE
-# aks-secrets-store-csi-driver-knhnr       3/3     Running   0          24m
-# aks-secrets-store-csi-driver-mpd6q       3/3     Running   0          24m
-# aks-secrets-store-provider-azure-4ckgq   1/1     Running   0          24m
-# aks-secrets-store-provider-azure-88snb   1/1     Running   0          24m
 
 # Check the created Manageed Identity
 az aks show -n $AKS_NAME -g $AKS_RG --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv
-# 47744279-8b5e-4c77-9102-7c6c1874587a
 # we won't use this (default) managed identity, we'll use our own
 
 # 2. Create tls certificate for ingress
@@ -59,9 +51,6 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 `
     -addext "subjectAltName = DNS:$DNS_NAME.westeurope.cloudapp.azure.com"
 
 openssl pkcs12 -export -in aks-ingress-tls.crt -inkey aks-ingress-tls.key -out "$CERT_NAME.pfx"
-# skip Password prompt
-# Enter Export Password:
-# Verifying - Enter Export Password:
 
 # 3. Create a Keyvault instance
 
@@ -71,7 +60,6 @@ az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 
 $AKV_ID=$(az keyvault show -n $AKV_NAME -g $AKS_RG --query id -o tsv)
 echo $AKV_ID
-# /subscriptions/82f6d75e-85f4-xxxx-xxxx-5dddd9fa8910/resourceGroups/rg-aks-dev/providers/Microsoft.KeyVault/vaults/akvaksapp0137
 
 $CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
 echo $CURRENT_USER_ID
@@ -94,11 +82,9 @@ az identity create -g $AKS_RG -n $IDENTITY_NAME
 
 $IDENTITY_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "id" -o tsv)
 echo $IDENTITY_ID
-# /subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourcegroups/rg-aks-we/providers/Microsoft.ManagedIdentity/userAssignedIdentities/keyvault-identity
 
 $IDENTITY_CLIENT_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "clientId" -o tsv)
 echo $IDENTITY_CLIENT_ID
-# a908d131-d1f3-4f44-8b9e-c5d21110eb84
 
 # assign role "Key Vault Secrets User" on Keyvault to managed identity
 
@@ -111,7 +97,6 @@ az role assignment create --assignee $IDENTITY_CLIENT_ID `
 $NAMESPACE_APP="app-07" # can be changed to namespace of your workload
 
 kubectl create namespace $NAMESPACE_APP
-# namespace/app-07 created
 
 $SERVICE_ACCOUNT_NAME="workload-identity-sa"
 
@@ -127,7 +112,6 @@ metadata:
 "@ > service-account.yaml
 
 kubectl apply -f service-account.yaml --namespace $NAMESPACE_APP
-# serviceaccount/workload-identity-sa created
 
 # 7. Configure federated credential
 
@@ -137,17 +121,6 @@ az identity federated-credential create -n $FEDERATED_IDENTITY_NAME -g $AKS_RG `
             --identity-name $IDENTITY_NAME `
             --issuer $AKS_OIDC_ISSUER `
             --subject system:serviceaccount:${NAMESPACE_APP}:${SERVICE_ACCOUNT_NAME}
-# {
-#   "audiences": [
-#     "api://AzureADTokenExchange"
-#   ],
-#   "id": "/subscriptions/82f6d75e-85f4-434a-ab74-5dddd9fa8910/resourcegroups/rg-aks-we/providers/Microsoft.ManagedIdentity/userAssignedIdentities/keyvault-identity/federatedIdentityCredentials/aksfederatedidentity",
-#   "issuer": "https://westeurope.oic.prod-aks.azure.com/16b3c013-d300-468d-ac64-7eda0820b6d3/842120d9-99dd-44dc-be68-91f78bdd41ed/",
-#   "name": "aksfederatedidentity",
-#   "resourceGroup": "rg-aks-we",
-#   "subject": "system:serviceaccount:ingress-nginx-app-07:workload-identity-sa",
-#   "type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials"
-# }
 
 # 8. Configure SecretProviderClass
 
@@ -155,7 +128,6 @@ $TLS_SECRET="tls-secret-csi-app-07"
 
 $TENANT_ID=$(az account list --query "[?isDefault].tenantId" -o tsv)
 echo $TENANT_ID
-# 16b3c013-d300-468d-ac64-7eda0820b6d3
 
 $SECRET_PROVIDER_CLASS="azure-tls-spc-app-07"
 
@@ -189,11 +161,8 @@ spec:
 "@ > secretProviderClass.yaml
 
 kubectl apply -f secretProviderClass.yaml -n $NAMESPACE_APP
-# secretproviderclass.secrets-store.csi.x-k8s.io/azure-tls-spc-app-07 created
 
 kubectl get secretProviderClass -n $NAMESPACE_APP
-# NAME                   AGE
-# azure-tls-spc-app-07   1s
 
 # 9. Create deployment that uses the service account and secret store CSI driver
 
@@ -246,8 +215,6 @@ spec:
 "@ > aks-helloworld-one.yaml
 
 kubectl apply -f aks-helloworld-one.yaml --namespace $NAMESPACE_APP
-# deployment.apps/aks-helloworld-one created
-# service/aks-helloworld-one created
 
 @"
 apiVersion: apps/v1
@@ -298,38 +265,17 @@ spec:
 "@ > aks-helloworld-two.yaml
 
 kubectl apply -f aks-helloworld-two.yaml --namespace $NAMESPACE_APP
-# deployment.apps/aks-helloworld-two created
-# service/aks-helloworld-two created
 
 kubectl get pods,svc -n $NAMESPACE_APP
-# NAME                                      READY   STATUS    RESTARTS   AGE
-# pod/aks-helloworld-one-85bc95b4db-5phk6   1/1     Running   0          32s
-# pod/aks-helloworld-two-5f89bff56-d47ft    1/1     Running   0          32s
-
-# NAME                         TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
-# service/aks-helloworld-one   ClusterIP   10.0.206.22   <none>        80/TCP    32s
-# service/aks-helloworld-two   ClusterIP   10.0.176.49   <none>        80/TCP    32s
 
 # the secret should have been deployed
 kubectl describe secret $TLS_SECRET -n $NAMESPACE_APP
-# Name:         tls-secret-csi-app-07
-# Namespace:    app-07
-# Labels:       secrets-store.csi.k8s.io/managed=true
-# Annotations:  <none>
-
-# Type:  kubernetes.io/tls
-
-# Data
-# ====
-# tls.crt:  1342 bytes
-# tls.key:  1675 bytes
 
 # 9. Install Nginx Ingress Controller with custom name
 
 $NAMESPACE_INGRESS="ingress-nginx-app-07"
 
 kubectl create namespace $NAMESPACE_INGRESS
-# namespace/ingress-nginx-app-07 created
 
 # install Nginx ingress controller
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -357,22 +303,12 @@ helm upgrade --install ingress-nginx-app-07 ingress-nginx/ingress-nginx `
 
 # get the ingress class resources, note we already have one deployed in another demo
 kubectl get ingressclass
-# NAME           CONTROLLER                    PARAMETERS   AGE
-# nginx-app-07   k8s.io/ingress-nginx-app-07   <none>       50s
 
 kubectl get pods,svc -n $NAMESPACE_INGRESS
-# NAME                                                   READY   STATUS    RESTARTS   AGE
-# pod/ingress-nginx-app-07-controller-84754f8d77-4nk4s   1/1     Running   0          15m
-# pod/ingress-nginx-app-07-controller-84754f8d77-745mr   1/1     Running   0          15m
-
-# NAME                                                TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
-# service/ingress-nginx-app-07-controller             LoadBalancer   10.0.93.183    20.101.208.164   80:32033/TCP,443:32039/TCP   15m
-# service/ingress-nginx-app-07-controller-admission   ClusterIP      10.0.151.181   <none>           443/TCP                      15m
 
 # capture ingress, public IP (Azure Public IP created)
 $INGRESS_PUPLIC_IP=$(kubectl get services ingress-$INGRESS_CLASS_NAME-controller -n $NAMESPACE_INGRESS -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo $INGRESS_PUPLIC_IP
-# 20.101.208.164
 
 # 10. Configure Ingress' Public IP with DNS Name
 
@@ -381,18 +317,15 @@ echo $INGRESS_PUPLIC_IP
 # Get the resource-id of the public IP
 $NODE_RG=$(az aks show -g $AKS_RG -n $AKS_NAME --query nodeResourceGroup -o tsv)
 echo $NODE_RG
-# MC_rg-aks-demo_aks-cluster_westeurope
 
 $AZURE_PUBLIC_IP_ID=$(az network public-ip list -g $NODE_RG --query "[?ipAddress!=null]|[?contains(ipAddress, '$INGRESS_PUPLIC_IP')].[id]" -o tsv)
 echo $AZURE_PUBLIC_IP_ID
-# /subscriptions/82f6d75e-85f4-xxxx-xxxx-5dddd9fa8910/resourceGroups/mc_rg-aks-demo_aks-cluster_westeurope/providers/Microsoft.Network/publicIPAddresses/kubernetes-a67a81403ec5e4ebca58049d0ebfda3c
 
 # Update public IP address with DNS name
 az network public-ip update --ids $AZURE_PUBLIC_IP_ID --dns-name $DNS_NAME
+
 $DOMAIN_NAME_FQDN=$(az network public-ip show --ids $AZURE_PUBLIC_IP_ID --query='dnsSettings.fqdn' -o tsv)
-# DOMAIN_NAME_FQDN=$(az network public-ip show -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --query='dnsSettings.fqdn')
 echo $DOMAIN_NAME_FQDN
-# "aks-app-07.westeurope.cloudapp.azure.com"
 
 # 10.2. Option 2: Name to associate with Azure DNS Zone
 
@@ -406,7 +339,6 @@ az network dns record-set a add-record `
 # az network public-ip update -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --dns-name $DNS_NAME
 $DOMAIN_NAME_FQDN=$DNS_NAME.houssem.cloud
 echo $DOMAIN_NAME_FQDN
-# aks-app-03.houssem.cloud
 
 # 11. Deploy Ingress resource taht will retrieve TLS certificate from secret
 
@@ -480,98 +412,8 @@ spec:
 kubectl apply -f hello-world-ingress.yaml --namespace $NAMESPACE_APP
 
 kubectl get ingress --namespace $NAMESPACE_APP
-# NAME                         CLASS          HOSTS                                      ADDRESS   PORTS     AGE
-# hello-world-ingress          nginx-app-07   aks-app-07.westeurope.cloudapp.azure.com             80, 443   12s
-# hello-world-ingress-static   nginx-app-07   aks-app-07.westeurope.cloudapp.azure.com             80, 443   11s
 
 # 12. Check app is working with HTTPS
 
 # check tls certificate
 curl -v -k --resolve $DOMAIN_NAME_FQDN:443:$INGRESS_PUPLIC_IP https://$DOMAIN_NAME_FQDN
-# MAIN_NAME_FQDN
-# * Added aks-app-07.westeurope.cloudapp.azure.com:443:20.238.249.157 to DNS cache
-# * Hostname aks-app-07.westeurope.cloudapp.azure.com was found in DNS cache
-# *   Trying 20.238.249.157:443...
-# * Connected to aks-app-07.westeurope.cloudapp.azure.com (20.238.249.157) port 443 (#0)
-# * ALPN, offering h2
-# * ALPN, offering http/1.1
-# * TLSv1.0 (OUT), TLS header, Certificate Status (22):
-# * TLSv1.3 (OUT), TLS handshake, Client hello (1):
-# * TLSv1.2 (IN), TLS header, Certificate Status (22):
-# * TLSv1.3 (IN), TLS handshake, Server hello (2):
-# * TLSv1.2 (IN), TLS header, Finished (20):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Certificate (11):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, CERT verify (15):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Finished (20):
-# * TLSv1.2 (OUT), TLS header, Finished (20):
-# * TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.3 (OUT), TLS handshake, Finished (20):
-# * SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
-# * ALPN, server accepted to use h2
-# * Server certificate:
-# *  subject: CN=aks-app-07.westeurope.cloudapp.azure.com; O=aks-ingress-tls
-# *  start date: Nov 25 11:12:44 2022 GMT
-# *  expire date: Nov 25 11:12:44 2023 GMT
-# *  issuer: CN=aks-app-07.westeurope.cloudapp.azure.com; O=aks-ingress-tls
-# *  SSL certificate verify result: self-signed certificate (18), continuing anyway.
-# * Using HTTP2, server supports multiplexing
-# * Connection state changed (HTTP/2 confirmed)
-# * Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * Using Stream ID: 1 (easy handle 0x564b2b7b5e80)
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# > GET / HTTP/2
-# > Host: aks-app-07.westeurope.cloudapp.azure.com
-# > user-agent: curl/7.81.0
-# > accept: */*
-# >
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
-# * old SSL session ID is stale, removing
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * Connection state changed (MAX_CONCURRENT_STREAMS == 128)!
-# * TLSv1.2 (OUT), TLS header, Supplemental data (23):
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# < HTTP/2 200
-# < date: Fri, 25 Nov 2022 12:23:00 GMT
-# < content-type: text/html; charset=utf-8
-# < content-length: 629
-# < strict-transport-security: max-age=15724800; includeSubDomains
-# <
-# <!DOCTYPE html>
-# <html xmlns="http://www.w3.org/1999/xhtml">
-# <head>
-#     <link rel="stylesheet" type="text/css" href="/static/default.css">
-#     <title>Welcome to Azure Kubernetes Service (AKS)</title>
-
-#     <script language="JavaScript">
-#         function send(form){
-#         }
-#     </script>
-
-# </head>
-# <body>
-#     <div id="container">
-#         <form id="form" name="form" action="/"" method="post"><center>
-#         <div id="logo">Welcome to Azure Kubernetes Service (AKS)</div>
-#         <div id="space"></div>
-#         <img src="/static/acs.png" als="acs logo">
-#         <div id="form">
-#         </div>
-#     </div>
-# </body>
-# * TLSv1.2 (IN), TLS header, Supplemental data (23):
-# * Connection #0 to host aks-app-07.westeurope.cloudapp.azure.com left intact
-# </html>
-
-# default-backend="https", ingress nginx
