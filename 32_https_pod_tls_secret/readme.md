@@ -1,5 +1,14 @@
 # Setting TLS certificate in Kubernetes deployment
 
+This lab will show how to configure a kubernetes deployment to use TLS certificate to enable HTTPS. We'll take as an example a .NET application.
+
+Lab steps:
+1. Create an AKS cluster
+2. Create TLS certificate for the Deployment
+3. Save certificate into a kubernetes secret object
+4. Deploy sample application that uses the TLS secret to configure HTTPS
+5. Verify TLS certificate is working
+
 ## 1. Create an AKS cluster
 
 ```powershell
