@@ -9,6 +9,8 @@ Lab steps:
 4. Deploy sample application that uses the TLS secret to configure HTTPS
 5. Verify TLS certificate is working
 
+<img src="media/tls-secret-pod.png">
+
 ## 1. Create an AKS cluster
 
 ```powershell
