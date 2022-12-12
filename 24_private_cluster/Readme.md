@@ -11,7 +11,7 @@ By default, it is exposed on a public endpoint accessible over the internet.
 It could be secured using authentication and authorisation using Azure AD for example. It does also support whitelisting only secific IP ranges to connect to it.  
 But for organisations who wants to disable this public endpoint, they can leverage the private cluster feature.  
 
-AKS supports 4 access options:
+AKS supports 4 access options to the control plane:
 1) public cluster
 2) private cluster
 3) public cluster with API Integration enabled
@@ -23,11 +23,17 @@ This is not covering scenarios where a user access an application through public
 <img src="images\aks_access_modes.png" width="60%">
 
 ## 1. Public cluster
+
+Let's start with the default access mode for an AKS cluster's control plane: public access. We'll create a new public cluster and explore its configuration.
+
 ```bash
 # create public cluster
 az group create  -n rg-aks-public -l westeurope
 az aks create -n aks-cluster -g rg-aks-public
 ```
+
+A public cluster will have a public endpoint for the control plane called `fqdn`. It is in form of: <unique_id>.hcp.<region>.azmk8s.io. And it resolves to a public IP.
+
 ```bash
 # get the public FQDN
 az aks show -n aks-cluster -g rg-aks-public --query fqdn
@@ -36,9 +42,15 @@ az aks show -n aks-cluster -g rg-aks-public --query fqdn
 nslookup aks-cluste-rg-aks-public-17b128-93acc102.hcp.westeurope.azmk8s.io
 # output:
 # Address: 20.103.218.175
+```
+
+AKS Rest API defines a property called `privateFqdn`. Its value is null because this is a public cluster.
+
+```bash
 az aks show -n aks-cluster -g rg-aks-public --query privateFqdn
 # output: null
 ```
+
 How Worker Nodes connects to the Control Plane ?
 They use the public IP address.
 ```bash
