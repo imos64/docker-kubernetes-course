@@ -122,7 +122,7 @@ The private IP address `10.224.0.4` is the address used by Private Endpoint to a
 
 The private cluster still (by default) expose a public FQDN resolving the private endpoint IP address.
 
-> In private cluster, the exposed [public FQDN could be disabled] (https://learn.microsoft.com/en-us/azure/aks/private-clusters#disable-public-fqdn-on-an-existing-cluster).
+> In private cluster, the exposed [public FQDN could be disabled](https://learn.microsoft.com/en-us/azure/aks/private-clusters#disable-public-fqdn-on-an-existing-cluster).
 
 Following is print screen for created resources.
 
