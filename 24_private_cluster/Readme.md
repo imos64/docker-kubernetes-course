@@ -123,6 +123,13 @@ The private IP address `10.224.0.4` is the address used by Private Endpoint to a
 The private cluster still (by default) expose a public FQDN resolving the private endpoint IP address.
 
 > In private cluster, the exposed [public FQDN could be disabled](https://learn.microsoft.com/en-us/azure/aks/private-clusters#disable-public-fqdn-on-an-existing-cluster).
+> ```bash
+> # disable public FQDN
+> az aks update -n aks-cluster -g rg-aks-private --disable-public-fqdn
+> # resolve the public (disabled) FQDN
+> az aks show -n aks-cluster -g rg-aks-private --query fqdn
+> # output: null (no public fqdn)
+> ```
 
 The following is print screen for the created resources. Note here the Private Endpoint, Network Interface and Private DNS Zone. They are all created inside the managed node resource group that starts with MC_. This means they will be managed by AKS for you.
 
@@ -154,14 +161,6 @@ az aks command invoke --resource-group rg-aks-private --name aks-cluster --comma
 # Port:              https  443/TCP
 # TargetPort:        443/TCP
 # Endpoints:         10.224.0.4:443
-```
-
-```bash
-# disable public FQDN
-az aks update -n aks-cluster -g rg-aks-private --disable-public-fqdn
-# resolve the public (disabled) FQDN
-az aks show -n aks-cluster -g rg-aks-private --query fqdn
-# output: null (no public fqdn)
 ```
 
 ## 3. Public cluster using API Integration
