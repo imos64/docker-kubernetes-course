@@ -163,6 +163,21 @@ az aks command invoke --resource-group rg-aks-private --name aks-cluster --comma
 # Endpoints:         10.224.0.4:443
 ```
 
+**Important notes for private clusters**  
++ Restarting the private cluster will recreate a new Private Endpoint with different private IP.
++ In a Hub & Spoke model, more attention is needed to manage the Private DNS Zone, [more details here](https://learn.microsoft.com/en-us/azure/aks/private-clusters#hub-and-spoke-with-custom-dns).
++ No support for public agents like Github Actions or Azure DevOps Microsoft-hosted Agents with private clusters. Consider using Self-hosted Agents.
++ No support for converting existing AKS clusters into private clusters.
++ AKS control plane supports adding multiple Private Endpoints.
++ IP authorized ranges can't be applied to the private API server endpoint, they only apply to the public API server.
++ To connect to the private cluster, consider the dedicated section below.
+
+The pros and the cons of this mode:
+➕ No public endpoint exposed on internet.  
+➕ Kubernetes CLI connects easily through the public endpoint.  
+➖ Public endpoint exposure on internet is not tolerated for some use cases.  
+➖ Worker nodes connects to control plane over public endpoint (within Azure backbone). 
+
 ## 3. Public cluster using API Integration
 
 ```bash
@@ -247,6 +262,14 @@ Following is print screen for created resources.
 
 <img src="images\resources_private_cluster_vnet_integration_dns.png" width="60%">
 
-Conclusion
+## How to access a private cluster
 
-<img src="images\recap.png" width="80%">
++ Kubectl command invoke –command “kubectl get pods”
++ JumpBox VM inside the AKS VNET or peered network
++ Use an Express Route or VPN connection
++ Use a private endpoint connection
+More details for how to [connect to private cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters#options-for-connecting-to-the-private-cluster).
+
+## Conclusion
+
+<img src="images\recap.png">
