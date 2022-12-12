@@ -124,9 +124,13 @@ The private cluster still (by default) expose a public FQDN resolving the privat
 
 > In private cluster, the exposed [public FQDN could be disabled](https://learn.microsoft.com/en-us/azure/aks/private-clusters#disable-public-fqdn-on-an-existing-cluster).
 
-Following is print screen for created resources.
+The following is print screen for the created resources. Note here the Private Endpoint, Network Interface and Private DNS Zone. They are all created inside the managed node resource group that starts with MC_. This means they will be managed by AKS for you.
 
 <img src="images\resources_private_cluster.png">
+
+> Private AKS creates a new Private DNS Zone by default. But you can [bring your own private DNS Zone](https://learn.microsoft.com/en-us/azure/aks/private-clusters#create-a-private-aks-cluster-with-custom-private-dns-zone-or-private-dns-subzone).
+
+Let's take a closer look at the Private DNS Zone. Note how it adds an `A` record to resolve the private IP address of the Private Endpoint. 
 
 <img src="images\resources_private_cluster_dns.png">
 
