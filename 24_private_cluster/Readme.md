@@ -309,13 +309,20 @@ nslookup aks-cluste-rg-aks-private-v-17b128-38360d0d.2788811a-873a-450d-811f-b7c
 # Address:  not found
 ```
 
+Pros and cons of this approach:    
+➕ Kubernetes CLI connects only through internal Load Balancer.  
+➕ Worker nodes connects to control plane over internal Load Balancer.  
+➖ Uses a subnet with CIDR range `/28` at least.
+
 ## How to access a private cluster
 
-+ Kubectl command invoke –command “kubectl get pods”
++ Az AKS command invoke –command “kubectl get pods”
 + JumpBox VM inside the AKS VNET or peered network
 + Use an Express Route or VPN connection
 + Use a private endpoint connection
 More details for how to [connect to private cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters#options-for-connecting-to-the-private-cluster).
+
+> The [AKS command invoke](https://learn.microsoft.com/en-us/azure/aks/command-invoke) could be used to easily access private clusters without setting any network access. It will use the Azure API to get access to the cluster. This option could be disabled.
 
 ## Conclusion
 
@@ -337,5 +344,3 @@ More details for how to [connect to private cluster](https://learn.microsoft.com
 </td>
 </tr>
 </table>
-
-<img src="images\recap.png">
