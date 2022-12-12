@@ -93,9 +93,11 @@ However, it have some drawbacks:
 
 ## 2. Private cluster using Private Endpoint
 
+For customers looking for to avoid public exposure of their resources, the `Private Endpoint` would be a solution.
 
+A [private AKS cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters) disables the public endpoint and creates a private endpoint to access the control plane.
 
-```bash
+```powershell
 # create private cluster
 az group create -n rg-aks-private -l westeurope
 az aks create -n aks-cluster -g rg-aks-private --enable-private-cluster
