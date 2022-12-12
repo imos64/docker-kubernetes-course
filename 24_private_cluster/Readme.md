@@ -138,7 +138,7 @@ Let's take a closer look at the Private DNS Zone. Note how it adds an `A` record
 # get the private FQDN
 az aks show -n aks-cluster -g rg-aks-private --query privateFqdn
 # output: "aks-cluste-rg-aks-private-17b128-6d8d6675.628fd8ef-83fc-49d4-975e-c765c36407d7.privatelink.westeurope.azmk8s.io"
-# resolve the private FQDN
+# resolve the private FQDN from outside the cluster VNET
 nslookup aks-cluste-rg-aks-private-17b128-6d8d6675.628fd8ef-83fc-49d4-975e-c765c36407d7.privatelink.westeurope.azmk8s.io
 # output:
 # Address:  not found
