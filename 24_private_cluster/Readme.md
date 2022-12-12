@@ -20,7 +20,7 @@ AKS supports 4 access options to the control plane:
 This article will explain these 4 options showing the architectural implementation for each one.  
 This is not covering scenarios where a user access an application through public Load Balancer or Ingress Controller.  
 
-<img src="images\aks_access_modes.png" width="60%">
+<img src="images\aks_access_modes.png">
 
 ## 1. Public cluster
 
@@ -51,8 +51,10 @@ az aks show -n aks-cluster -g rg-aks-public --query privateFqdn
 # output: null
 ```
 
-How Worker Nodes connects to the Control Plane ?
-They use the public IP address.
+Now the question is how cluster operators and worker nodes connects to the control plane ?  
+Well, they both use the public endpoint (public IP).
+We can check that if we take a look at the `kubernetes` service inside the cluster. We'll see an endpoint with a public IP address. Note that is the same IP adsress from the public endpoint.
+
 ```bash
 az aks get-credentials --resource-group rg-aks-public --name aks-cluster
 kubectl get svc
