@@ -78,9 +78,23 @@ Following is print screen for created resources for public cluster.
 
 > **Note:** In the cluster resources we see a public IP created with the cluster. It is used for egress traffic (outbound from pods and worker nodes). It is not the same as the public endpoint for our cluster. It already have a different IP address.
 
-The public cluster might not be enough
+> AKS can whitelist the IP addresses that can connect to the control plane.
+More details about [api-server-authorized-ip-ranges](https://learn.microsoft.com/en-us/azure/aks/api-server-authorized-ip-ranges)
+
+![Alt text](images/authorized-ip.png)
+
+The public cluster advantages are:
++ Easy to get started.
++ Kubernetes CLI connects easily through the public endpoint.
+
+However, it have some drawbacks:
++ Public endpoint exposure on internet is not tolerated for some use cases.
++ Worker nodes connects to control plane over public endpoint (within Azure backbone).
 
 ## 2. Private cluster using Private Endpoint
+
+
+
 ```bash
 # create private cluster
 az group create -n rg-aks-private -l westeurope
@@ -97,6 +111,7 @@ nslookup aks-cluste-rg-aks-private-17b128-32f70f3f.hcp.westeurope.azmk8s.io
 # Address:  10.224.0.4
 ```
 The private IP address '10.224.0.4' is the address used by Private Endpoint to access to Control Plane.
+
 ```bash
 # get the private FQDN
 az aks show -n aks-cluster -g rg-aks-private --query privateFqdn
