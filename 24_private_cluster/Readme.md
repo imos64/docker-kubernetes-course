@@ -187,6 +187,7 @@ Does AKS support this kind of 'hybrid' access where we expose both public and pr
 
 Well, yes ! That is the [API Server VNet Integration](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration).
 
+Like the public AKS cluster, we will have a public endpoint (public IP). And to expose a private access, unlike a private cluster that uses Private Endpoint, here we'll use the `VNET Integration`.
 The API server (part of the control plane) will be projected into a dedicated and delegated subnet in the cluster VNET. An internal Load Balancer will be created in that subnet. Worker nodes will be configured to use it to access the control plane.
 
 <img src="images\architecture_public_cluster_vnet_integration.png">
