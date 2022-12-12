@@ -51,7 +51,7 @@ az aks show -n aks-cluster -g rg-aks-public --query privateFqdn
 # output: null
 ```
 
-Now the question is how cluster operators and `worker nodes` connects to the `control plane` ?  
+Now the question is how cluster operators and `worker nodes` connect to the `control plane` ?  
 Well, they both use the public endpoint (public IP).
 We can check that if we take a look at the `kubernetes` service inside the cluster. We'll see an endpoint with a public IP address. Note that is the same IP adsress from the public endpoint.
 
@@ -76,7 +76,7 @@ Following is print screen for created resources for public cluster.
 
 <img src="images\resources_public_cluster.png">
 
-Note: In the cluster resources we see a public IP created with the cluster. It is used for egress traffic (outbound from pods and worker nodes). It is not the same as the public endpoint for our cluster. It already have a different IP address.
+> **Note:** In the cluster resources we see a public IP created with the cluster. It is used for egress traffic (outbound from pods and worker nodes). It is not the same as the public endpoint for our cluster. It already have a different IP address.
 
 The public cluster might not be enough
 
