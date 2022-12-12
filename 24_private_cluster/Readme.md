@@ -111,12 +111,24 @@ az aks create -n aks-cluster -g rg-aks-private --enable-private-cluster
 # get the public FQDN
 az aks show -n aks-cluster -g rg-aks-private --query fqdn
 # output: "aks-cluste-rg-aks-private-17b128-32f70f3f.hcp.westeurope.azmk8s.io"
+
 # resolve the public FQDN
 nslookup aks-cluste-rg-aks-private-17b128-32f70f3f.hcp.westeurope.azmk8s.io
 # output:
 # Address:  10.224.0.4
 ```
-The private IP address '10.224.0.4' is the address used by Private Endpoint to access to Control Plane.
+
+The private IP address `10.224.0.4` is the address used by Private Endpoint to access to Control Plane.
+
+The private cluster still (by default) expose a public FQDN resolving the private endpoint IP address.
+
+> In private cluster, the exposed [public FQDN could be disabled] (https://learn.microsoft.com/en-us/azure/aks/private-clusters#disable-public-fqdn-on-an-existing-cluster).
+
+Following is print screen for created resources.
+
+<img src="images\resources_private_cluster.png">
+
+<img src="images\resources_private_cluster_dns.png">
 
 ```bash
 # get the private FQDN
@@ -127,6 +139,7 @@ nslookup aks-cluste-rg-aks-private-17b128-6d8d6675.628fd8ef-83fc-49d4-975e-c765c
 # output:
 # Address:  not found
 ```
+
 Private FQDN is resolvable only through Private DNS Zone.
 
 ```bash
@@ -146,12 +159,6 @@ az aks update -n aks-cluster -g rg-aks-private --disable-public-fqdn
 az aks show -n aks-cluster -g rg-aks-private --query fqdn
 # output: null (no public fqdn)
 ```
-
-Following is print screen for created resources.
-
-<img src="images\resources_private_cluster.png">
-
-<img src="images\resources_private_cluster_dns.png">
 
 ## 3. Public cluster using API Integration
 
