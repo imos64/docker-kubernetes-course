@@ -83,13 +83,13 @@ More details about [api-server-authorized-ip-ranges](https://learn.microsoft.com
 
 ![Alt text](images/authorized-ip.png)
 
-The public cluster advantages are:
-➕ Easy to get started.
-➕ Kubernetes CLI connects easily through the public endpoint.
+The public cluster advantages are:  
+➕ Easy to get started.  
+➕ Kubernetes CLI connects easily through the public endpoint.  
 
-However, it have some drawbacks:
-➖ Public endpoint exposure on internet is not tolerated for some use cases.
-➖ Worker nodes connects to control plane over public endpoint (within Azure backbone).
+However, it have some drawbacks:  
+➖ Public endpoint exposure on internet is not tolerated for some use cases.  
+➖ Worker nodes connects to control plane over public endpoint (within Azure backbone).  
 
 ## 2. Private cluster using Private Endpoint
 
