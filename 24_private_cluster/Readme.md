@@ -95,9 +95,13 @@ However, it have some drawbacks:
 
 For customers looking for to avoid public exposure of their resources, the `Private Endpoint` would be a solution.
 
-A [private AKS cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters) disables the public endpoint and creates a private endpoint to access the control plane.
+A [private AKS cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters) disables the public endpoint and creates a private endpoint to access the control plane. As a result, access to the cluster for kubectl and CD pipelines requires access to cluster's private endpoint.  
 
-```powershell
+<img src="images\architecture_private_cluster.png">
+
+Let's see how that works.
+
+```bash
 # create private cluster
 az group create -n rg-aks-private -l westeurope
 az aks create -n aks-cluster -g rg-aks-private --enable-private-cluster
@@ -143,15 +147,14 @@ az aks show -n aks-cluster -g rg-aks-private --query fqdn
 # output: null (no public fqdn)
 ```
 
-<img src="images\architecture_private_cluster.png" width="60%">
-
 Following is print screen for created resources.
 
-<img src="images\resources_private_cluster.png" width="60%">
+<img src="images\resources_private_cluster.png">
 
-<img src="images\resources_private_cluster_dns.png" width="60%">
+<img src="images\resources_private_cluster_dns.png">
 
 ## 3. Public cluster using API Integration
+
 ```bash
 # create public cluster with VNET Integration
 az group create -n rg-aks-public-vnet-integration -l eastus2
