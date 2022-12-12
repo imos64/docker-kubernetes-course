@@ -179,6 +179,18 @@ The pros and the cons of this mode:
 
 ## 3. Public cluster using API Integration
 
+The control plane exposes one single endpoint for both worker nodes and cluster operators (kubectl). That endpoint is either public or private. 
+Private endpoint is suitable for worker nodes to secure the traffic from and to control plane.  
+But for access for cluster operators (admins using kubectl) and DevOps pipelines, they might prefer to use a public endpoint (if their security preferences allows).  
+
+Does AKS support this kind of 'hybrid' access where we expose both public and private endpoints ?  
+
+Well, yes ! That is the [API Server VNet Integration](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration).
+
+The API server (part of the control plane) will be projected into a dedicated and delegated subnet in the cluster VNET. An internal Load Balancer will be created in that subnet. Worker nodes will be configured to use it to access the control plane.
+
+<img src="images\architecture_public_cluster_vnet_integration.png">
+
 ```bash
 # create public cluster with VNET Integration
 az group create -n rg-aks-public-vnet-integration -l eastus2
@@ -215,8 +227,6 @@ kubectl get endpoints
 # NAME         ENDPOINTS        AGE
 # kubernetes   10.226.0.4:443   178m
 ```
-
-<img src="images\architecture_public_cluster_vnet_integration.png" width="60%">
 
 Following is print screen for created resources.
 
