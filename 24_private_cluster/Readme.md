@@ -173,10 +173,9 @@ az aks command invoke --resource-group rg-aks-private --name aks-cluster --comma
 + To connect to the private cluster, consider the dedicated section below.
 
 The pros and the cons of this mode:
-➕ No public endpoint exposed on internet.  
-➕ Kubernetes CLI connects easily through the public endpoint.  
-➖ Public endpoint exposure on internet is not tolerated for some use cases.  
-➖ Worker nodes connects to control plane over public endpoint (within Azure backbone). 
+➕ No public endpoint exposed on internet (which helps implement Zero Trust Network).  
+➕ Worker nodes connects to control plane using private endpoint. 
+➖ More work should be done to get acces to the cluster for DevOps pipelines and cluster operators.  
 
 ## 3. Public cluster using API Integration
 
