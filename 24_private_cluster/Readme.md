@@ -1,7 +1,7 @@
 # Public and private AKS clusters demystified
 
 ## Introduction
-Azure Kubernetes Service (AKS) is the managed kubernetes service in Azure. It have two main components: worker nodes and control plane.  
+Azure Kubernetes Service (AKS) is the managed kubernetes service in Azure. It has two main components: worker nodes and control plane.  
 The worker nodes are the VMs where customer applications will be deployed into.  
 The control plane is the component that manages the applications and the worker nodes.  
 A Kubernetes operator like a user, devops team or a release pipeline who wants to deploy applications, will do so using the control plane.  
@@ -87,7 +87,7 @@ The public cluster advantages are:
 ➕ Easy to get started.  
 ➕ Kubernetes CLI connects easily through the public endpoint.  
 
-However, it have some drawbacks:  
+However, it has some drawbacks:  
 ➖ Public endpoint exposure on internet is not tolerated for some use cases.  
 ➖ Worker nodes connect to control plane over public endpoint (within Azure backbone).  
 
@@ -95,7 +95,7 @@ However, it have some drawbacks:
 
 For customers looking to avoid public exposure of their resources, the `Private Endpoint` would be a solution.
 
-A [private AKS cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters) disables the public endpoint and creates a private endpoint to access the control plane. As a result, access to the cluster for kubectl and CD pipelines requires access to cluster's private endpoint.  
+A [private AKS cluster](https://learn.microsoft.com/en-us/azure/aks/private-clusters) disable the public endpoint and creates a private endpoint to access the control plane. As a result, access to the cluster for kubectl and CD pipelines requires access to cluster's private endpoint.  
 
 <img src="media\architecture_private_cluster.png">
 
@@ -169,7 +169,7 @@ az aks command invoke --resource-group rg-aks-private --name aks-cluster --comma
 + No support for public agents like Github Actions or Azure DevOps Microsoft-hosted Agents with private clusters. Consider using Self-hosted Agents.
 + No support for converting existing AKS clusters into private clusters.
 + AKS control plane supports adding multiple Private Endpoints.
-+ IP authorized ranges can not be applied to the private API server endpoint, they only apply to the public API server.
++ IP authorized ranges cannot be applied to the private API server endpoint, they only apply to the public API server.
 + To connect to the private cluster, consider the dedicated section below.
 
 The pros and the cons of this mode:  
@@ -195,7 +195,7 @@ Following is the simplified architecture.
 
 <img src="media\architecture_public_cluster_vnet_integration.png">
 
-Lets see how that works.
+Let us see how that works.
 
 ```bash
 # create public cluster with VNET Integration
@@ -227,7 +227,7 @@ nslookup aks-cluste-rg-aks-public-vn-17b128-2ab6e274.hcp.eastus2.azmk8s.io
 # Address:  20.94.16.207
 ```
 
-However, the private FQDN does not resolve anything. That is because the privateFQDN attribute is used only for Private Endpoint and not for VNET Integration.
+However, the private FQDN does not resolve anything. That is because the `privateFQDN` attribute is used only for Private Endpoint and not for VNET Integration.
 
 ```bash
 # get the private FQDN
