@@ -6,7 +6,7 @@ The worker nodes are the VMs where customer applications will be deployed into.
 The control plane is the component that manages the applications and the worker nodes.  
 A Kubernetes operator like a user, devops team or a release pipeline who wants to deploy applications, will do so using the control plane.  
 Worker nodes and operators will need to access the control plane.  
-The control plane is very critical and is fully managed by Azure.  
+The control plane is critical and is fully managed by Azure.  
 By default, it is exposed on a public endpoint accessible over the internet.  
 It could be secured using authentication and authorization using Azure AD for example. It does also support whitelisting only specific IP ranges to connect to it.  
 But for organizations who want to disable this public endpoint, they can leverage the private cluster feature.  
