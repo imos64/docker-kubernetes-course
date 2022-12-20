@@ -12,31 +12,18 @@ spec:
   type: ClusterIP
   clusterIP: None # headless service
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: mssql-service-public
-spec:
-  selector:
-    app: mssql
-  ports:
-  - protocol: TCP
-    port: 1433
-    targetPort: 1433
-  type: LoadBalancer
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: db-statefulset
 spec:
   serviceName: mssql-service
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mssql
   persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Retain
+    whenDeleted: Delete # Retain
     whenScaled: Delete
   template:
     metadata:
@@ -50,13 +37,8 @@ spec:
       containers:
       - name: mssql
         image: mcr.microsoft.com/mssql/server:2022-RTM-ubuntu-20.04
-        # image: mcr.microsoft.com/mssql/server:2017-CU20-ubuntu-16.04
         ports:
         - containerPort: 1433
-        # command:
-        # - "/bin/sh"
-        # - "-c"
-        # - printenv > /var/opt/mssql/printenv.txt; while true; do echo $(date) >> /var/opt/mssql/outfile; sleep 60; done
         env:
         - name: ACCEPT_EULA
           value: "Y"
