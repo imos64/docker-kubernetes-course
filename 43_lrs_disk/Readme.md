@@ -4,6 +4,12 @@
 
 In this lab, we'll mount an LRS Azure Disk with a deployment. Then we will simulate a zone or node failure. We will see how the LRS Disk will stik into its availability zone.
 
+## Plan
+0. Setup demo environment
+1. Deploy a sample deployment with PVC (Azure Disk with LRS)
+2. Simulate node failure (delete node)
+3. Resolving the issue (adding nodes in the same AZ)
+
 ## 0. Setup demo environment
 
 ```powershell
