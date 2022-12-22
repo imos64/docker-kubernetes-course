@@ -5,8 +5,6 @@
 ## 0. Setup demo environment
 
 ```powershell
-Set-Alias -Name grep -Value select-string # if using powershell
-
 # Variables
 $AKS_RG="rg-aks-az"
 $AKS_NAME="aks-cluster"
@@ -59,6 +57,8 @@ kubectl get nodes
 Worker Nodes are deployed into the 3 Azure Availability Zones
 
 ```powershell
+Set-Alias -Name grep -Value select-string # if using powershell
+
 kubectl describe nodes | grep topology.kubernetes.io/zone
 # topology.kubernetes.io/zone=westeurope-1
 # topology.kubernetes.io/zone=westeurope-2
