@@ -1,27 +1,7 @@
-# Creating primary and replicas databases using Statfulset and MySQL
+# resources: https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/
 
-## Introduction
+# 0. Setup demo environment
 
-This lab will create a StatfulSet for MySQL database. 
-We will have one primary instance for read/write and many replicas instances for read-only.
-Data is always inserted into primary database then replicated and synchronized using [Percona XtraBackup](https://github.com/percona/percona-xtrabackup).
-
-<img src="images/architecture.png">
-
-## Plan
-0. Setup demo environment
-1. Deploy statefulset, service and configmap
-2. Insert data into th primary mysql database
-4. Read data from a specific replica
-5. Read data from another specific replica
-6. Scaling the number of replicas
-7. Verify database is replicated into the new replicas
-8. Scaling back down the StatefulSet
-9. deleting the unneeded PVs
-
-## 0. Setup demo environment
-
-```powershell
 # Variables
 $AKS_RG="rg-aks-az"
 $AKS_NAME="aks-cluster"
@@ -37,15 +17,9 @@ az aks create --name $AKS_NAME `
 az aks get-credentials -n $AKS_NAME -g $AKS_RG --overwrite-existing
 
 kubectl get nodes
-# NAME                                STATUS   ROLES   AGE    VERSION
-# aks-nodepool1-49785470-vmss000000   Ready    agent   2m3s   v1.23.12
-# aks-nodepool1-49785470-vmss000001   Ready    agent   119s   v1.23.12
-# aks-nodepool1-49785470-vmss000002   Ready    agent   2m     v1.23.12
-```
 
-## 1. Deploy statefulset, service and configmap
+# 1. Deploy statefulset, service and configmap
 
-```powershell
 kubectl apply -f .
 # configmap/mysql created
 # service/mysql created
@@ -76,17 +50,11 @@ kubectl get sts,pod,svc,pv,pvc
 # persistentvolumeclaim/data-mysql-0   Bound    pvc-276393bc-81a5-42e6-ab8e-3e29a3385f7c   10Gi       RWO            managed-csi    4m7s
 # persistentvolumeclaim/data-mysql-1   Bound    pvc-e55cdf98-a35e-4067-8d9f-b630c10bbfbd   10Gi       RWO            managed-csi    3m14s
 # persistentvolumeclaim/data-mysql-2   Bound    pvc-ea2055ff-5b7b-4d8d-9eae-e61450c9b5ce   10Gi       RWO            managed-csi    2m19s
-```
 
-We can also check the 3 Azure Disks in the portal.
+# 2. Insert data into th main database
 
-<img src="images/disk-pv.png">
-
-## 2. Insert data into the primary mysql database
-
-You can send test queries to the primary MySQL server (hostname mysql-0.mysql) by running a temporary container with the mysql:5.7 image and running the mysql client binary.
-
-```powershell
+# You can send test queries to the primary MySQL server (hostname mysql-0.mysql) 
+# by running a temporary container with the mysql:5.7 image and running the mysql client binary.
 kubectl run mysql-client --image=mysql:5.7 -i --rm --restart=Never -- `
   mysql -h mysql-0.mysql -e "
     CREATE DATABASE test; 
@@ -94,37 +62,31 @@ kubectl run mysql-client --image=mysql:5.7 -i --rm --restart=Never -- `
     INSERT INTO test.messages VALUES ('hello');
 "
 # pod "mysql-client" deleted
-```
 
-Watch what will happen now.
+# Cloning existing data
 
-## Cloning existing data
+# when a new Pod joins the set as a replica, it must assume the primary MySQL server might already have data on it.
+# The second init container, named clone-mysql, performs a clone operation on a replica Pod the first time 
+# it starts up on an empty PersistentVolume. That means it copies all existing data from another running Pod, 
+# so its local state is consistent enough to begin replicating from the primary server.
+# MySQL itself does not provide a mechanism to do this, 
+# so the example uses a popular open-source tool called Percona XtraBackup. 
+# During the clone, the source MySQL server might suffer reduced performance. 
+# To minimize impact on the primary MySQL server, the script instructs each Pod to clone from the Pod whose ordinal index is one lower.
+# This works because the StatefulSet controller always ensures Pod N is Ready before starting Pod N+1.
 
-when a new Pod joins the set as a replica, it must assume the primary MySQL server might already have data on it.
-The second init container, named clone-mysql, performs a clone operation on a replica Pod the first time 
-it starts up on an empty PersistentVolume. That means it copies all existing data from another running Pod, 
-so its local state is consistent enough to begin replicating from the primary server.
-MySQL itself does not provide a mechanism to do this, 
-so the example uses a popular open-source tool called `Percona XtraBackup`. 
-During the clone, the source MySQL server might suffer reduced performance. 
-To minimize impact on the primary MySQL server, the script instructs each Pod to clone from the Pod whose ordinal index is one lower.
-This works because the StatefulSet controller always ensures Pod N is Ready before starting Pod N+1.
+# Starting replication
 
-## Starting replication
+# After the init containers complete successfully, the regular containers run. 
+# The MySQL Pods consist of a mysql container that runs the actual mysqld server, 
+# and an xtrabackup container that acts as a sidecar.
+# The xtrabackup sidecar looks at the cloned data files and determines if it's necessary to initialize MySQL replication on the replica. 
+# If so, it waits for mysqld to be ready and then executes commands with replication parameters extracted from the XtraBackup clone files.
+# Replicas look for the primary server at its stable DNS name (mysql-0.mysql), 
+# they automatically find the primary server even if it gets a new Pod IP due to being rescheduled.
 
-After the init containers complete successfully, the regular containers run. 
-The MySQL Pods consist of a mysql container that runs the actual mysqld server, 
-and an `xtrabackup` container that acts as a sidecar.
-The `xtrabackup` sidecar looks at the cloned data files and determines if it's necessary to initialize MySQL replication on the replica. 
-If so, it waits for mysqld to be ready and then executes commands with replication parameters extracted from the `XtraBackup` clone files.
-Replicas look for the primary server at its stable DNS name (mysql-0.mysql), 
-they automatically find the primary server even if it gets a new Pod IP due to being rescheduled.
+# 3. Test hostname mysql-read to send test queries to any server that reports being Ready:
 
-## 3. Query database using the exposed service for read-only
-
-Test hostname mysql-read to send test queries to any server that reports being Ready:
-
-```powershell
 kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
   mysql -h mysql-read -e "
     SELECT * FROM test.messages
@@ -135,24 +97,9 @@ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
 # | hello   |
 # +---------+
 # pod "mysql-client" deleted
-```
 
-## 4. Read data from a specific replica
+# 4. Read data from a specific replica
 
-```powershell
-kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
-  mysql -h mysql-1.mysql -e "SELECT * FROM test.messages"
-#   +---------+
-#   | message |
-#   +---------+
-#   | hello   |
-#   +---------+
-#   pod "mysql-client" deleted
-```
-
-## 5. Read data from another specific replica
-
-```powershell
 kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
   mysql -h mysql-2.mysql -e "SELECT * FROM test.messages"
 #   +---------+
@@ -161,11 +108,9 @@ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
 #   | hello   |
 #   +---------+
 #   pod "mysql-client" deleted
-```
 
-To demonstrate that the mysql-read Service distributes connections across servers, you can run SELECT @@server_id in a loop:
+# To demonstrate that the mysql-read Service distributes connections across servers, you can run SELECT @@server_id in a loop:
 
-```powershell
 kubectl run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never -- `
   bash -ic "while sleep 1; do mysql -h mysql-read -e 'SELECT @@server_id,NOW()'; done"
 #   If you don't see a command prompt, try pressing enter.
@@ -184,14 +129,11 @@ kubectl run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never -- `
 # #   +-------------+---------------------+
 # #   |         101 | 2022-12-21 14:34:11 |
 # #   +-------------+---------------------+
-```
 
-## 6. Scaling the number of replicas
+# Scaling the number of replicas
+# When you use MySQL replication, you can scale your read query capacity by adding replicas. 
+# For a StatefulSet, you can achieve this with a single command:
 
-When you use MySQL replication, you can scale your read query capacity by adding replicas. 
-For a StatefulSet, you can achieve this with a single command:
-
-```powershell
 kubectl scale statefulset mysql --replicas=5
 # statefulset.apps/mysql scaled
 
@@ -216,13 +158,9 @@ kubectl get pods -l app=mysql --watch
 # mysql-4   0/2     PodInitializing   0          24s
 # mysql-4   1/2     Running           0          25s
 # mysql-4   2/2     Running           0          30s
-```
 
-## 7. Verify database is replicated into the new replicas
+# Verify that these new servers have the data you added before they existed:
 
-Verify that these new servers have the data you added before they existed:
-
-```powershell
 kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
   mysql -h mysql-3.mysql -e "SELECT * FROM test.messages"
 # +---------+
@@ -232,26 +170,14 @@ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
 # +---------+
 # pod "mysql-client" deleted
 
-kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never -- `
-  mysql -h mysql-4.mysql -e "SELECT * FROM test.messages"
-# +---------+
-# | message |
-# +---------+
-# | hello   |
-# +---------+
-# pod "mysql-client" deleted
-```
+# Scaling back down is also seamless:
 
-## 8. Scaling back down the StatefulSet
-
-```powershell
 kubectl scale statefulset mysql --replicas=3
-```
 
-Although scaling up creates new PersistentVolumeClaims automatically, scaling down does not automatically delete these PVCs.
-This gives you the choice to keep those initialized PVCs around to make scaling back up quicker, or to extract data before deleting them.
+# Although scaling up creates new PersistentVolumeClaims automatically, scaling down does not automatically delete these PVCs.
+# This gives you the choice to keep those initialized PVCs around to make scaling back up quicker, 
+# or to extract data before deleting them.
 
-```powershell
 kubectl get pvc -l app=mysql
 # NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 # data-mysql-0   Bound    pvc-dac5ffbe-bddf-4698-849a-1ef74bc9d8b8   10Gi       RWO            managed-csi    3h36m
@@ -259,21 +185,6 @@ kubectl get pvc -l app=mysql
 # data-mysql-2   Bound    pvc-ef996d92-f734-4f5a-ac1c-7d02cb7b627e   10Gi       RWO            managed-csi    3h35m
 # data-mysql-3   Bound    pvc-496e2611-2523-4b86-8d2c-bc013ce34234   10Gi       RWO            managed-csi    3m53s
 # data-mysql-4   Bound    pvc-d9fe412f-0af7-4622-a398-2fd0d52b8db7   10Gi       RWO            managed-csi    3m22s
-```
 
-## 9. deleting the unneeded PVs
-
-```powershell
 kubectl delete pvc data-mysql-3
 kubectl delete pvc data-mysql-4
-
-kubectl get pvc -l app=mysql
-# NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-# data-mysql-0   Bound    pvc-dac5ffbe-bddf-4698-849a-1ef74bc9d8b8   10Gi       RWO            managed-csi    3h36m
-# data-mysql-1   Bound    pvc-bb3c6e54-e81e-42f9-afb2-33d0f38ecd11   10Gi       RWO            managed-csi    3h35m
-# data-mysql-2   Bound    pvc-ef996d92-f734-4f5a-ac1c-7d02cb7b627e   10Gi       RWO            managed-csi    3h35m
-```
-
-## Resources
-
-This lab was heavily inspired from this lab: https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/

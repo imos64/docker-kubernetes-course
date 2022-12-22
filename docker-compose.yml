@@ -14,7 +14,6 @@ services:
 
   db:
     container_name: mssql-db
-    # image: "mcr.microsoft.com/mssql/server:2019-CU4-ubuntu-16.04"
     image: "microsoft/mssql-server-linux"
     expose:
       - "1433"

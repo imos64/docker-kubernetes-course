@@ -13,16 +13,18 @@ namespace WebApp.Controllers
     public class ProductsController : Controller
     {
         private readonly WebAppContext _context;
+        private readonly ILogger<HomeController> _logger;
 
-        public ProductsController(WebAppContext context)
+        public ProductsController(WebAppContext context, ILogger<HomeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-              return _context.Product != null ? 
+            return _context.Product != null ? 
                           View(await _context.Product.ToListAsync()) :
                           Problem("Entity set 'WebAppContext.Product'  is null.");
         }

@@ -5,9 +5,13 @@ namespace WebApp.Data
 {
     public class WebAppContext : DbContext
     {
-        public WebAppContext (DbContextOptions<WebAppContext> options)
+        public WebAppContext (DbContextOptions<WebAppContext> options, ILogger<WebAppContext> logger)
             : base(options)
         {
+            var cs = Database.GetConnectionString();
+
+            logger.Log(LogLevel.Information, cs);
+
             Database.EnsureCreated();
 
             Seed();

@@ -11,6 +11,7 @@ $VERSION_NEW="1.22.4"
 # create and connect to cluster
 az group create --name $AKS_RG `
                 --location westeurope
+                
 az aks create --name $AKS_NAME `
               --resource-group $AKS_RG `
               --node-count 2 `

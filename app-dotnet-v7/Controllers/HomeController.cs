@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections;
 using System.Diagnostics;
 using WebApp.Models;
 
@@ -20,6 +21,9 @@ namespace WebApp.Controllers
 
         public IActionResult Privacy()
         {
+            foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
+                _logger.Log(LogLevel.Information, "{0} = {1}", de.Key, de.Value);
+
             return View();
         }
 
