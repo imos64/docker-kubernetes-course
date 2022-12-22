@@ -25,62 +25,38 @@ kubectl get nodes
 ## 1. Deploy a sample deployment with PVC (Azure Disk with LRS)
 
 kubectl apply -f lrs-disk-deploy.yaml
-# persistentvolumeclaim/azure-managed-disk-lrs created
-# deployment.apps/nginx-lrs created
 
 # Verify resources deployed successfully
 
 kubectl get pods,pv,pvc
-# NAME                             READY   STATUS    RESTARTS   AGE
-# pod/nginx-lrs-5fc6787dff-2f8zj   1/1     Running   0          70s
-# NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                            STORAGECLASS
-# persistentvolume/pvc-7734f114-cdef-4cf9-ae60-9cd840f641a6   5Gi        RWO            Delete           Bound    default/azure-managed-disk-lrs   managed-csi 
-
-# NAME                                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-# persistentvolumeclaim/azure-managed-disk-lrs   Bound    pvc-7734f114-cdef-4cf9-ae60-9cd840f641a6   5Gi        RWO            managed-csi    70s
 
 # Check the worker node for the pod
 
 kubectl get pods -o wide
-# NAME                         READY   STATUS    RESTARTS   AGE   IP            NODE
-# nginx-lrs-5fc6787dff-2f8zj   1/1     Running   0          27s   10.244.2.12   aks-nodepool1-49785470-vmss000001
 
 kubectl get nodes
-# NAME                                STATUS   ROLES   AGE     VERSION
-# aks-nodepool1-49785470-vmss000000   Ready    agent   3h32m   v1.23.12
-# aks-nodepool1-49785470-vmss000001   Ready    agent   3h32m   v1.23.12
-# aks-nodepool1-49785470-vmss000002   Ready    agent   3h32m   v1.23.12
 
 # Worker Nodes are deployed into the 3 Azure Availability Zones
 
 kubectl describe nodes | grep topology.kubernetes.io/zone
-# topology.kubernetes.io/zone=westeurope-1
-# topology.kubernetes.io/zone=westeurope-2
-# topology.kubernetes.io/zone=westeurope-3
 
 # Check the Availability Zone for our pod
 
 # Get Pod's node name
 $NODE_NAME=$(kubectl get pods -l app=nginx-lrs -o jsonpath='{.items[0].spec.nodeName}')
 echo $NODE_NAME
-# aks-nodepool1-49785470-vmss000001
 
 kubectl get nodes $NODE_NAME -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}'
-# westeurope-2
 
 kubectl describe nodes $NODE_NAME | grep topology.kubernetes.io/zone
-# topology.kubernetes.io/zone=westeurope-2
 
 ## 2. Simulate node failure (delete node)
 
 kubectl delete node $NODE_NAME
-# node "aks-nodepool1-49785470-vmss000001" deleted
 
 # Check the pod, we have a problem!
 
 kubectl get pods -o wide
-# NAME                         READY   STATUS    RESTARTS   AGE    IP       NODE
-# nginx-lrs-5fc6787dff-wk99x   0/1     Pending   0          107s   <none>   <none>
 
 # Check Pod events
 
@@ -102,36 +78,21 @@ az aks scale -n $AKS_NAME -g $AKS_RG --node-count 6
 # Check the created Nodes (note the missing node we deleted earlier!)
 
 kubectl get nodes
-# NAME                                STATUS   ROLES   AGE    VERSION
-# aks-nodepool1-49785470-vmss000000   Ready    agent   5h3m   v1.23.12
-# aks-nodepool1-49785470-vmss000002   Ready    agent   5h3m   v1.23.12
-# aks-nodepool1-49785470-vmss000003   Ready    agent   100s   v1.23.12
-# aks-nodepool1-49785470-vmss000004   Ready    agent   100s   v1.23.12
-# aks-nodepool1-49785470-vmss000005   Ready    agent   102s   v1.23.12
 
 # Verify we have nodes in all 3 availability zones (including AZ-2 where we have the Disk/PV)
 
 kubectl describe nodes | grep topology.kubernetes.io/zone
-# topology.kubernetes.io/zone=westeurope-1
-# topology.kubernetes.io/zone=westeurope-3
-# topology.kubernetes.io/zone=westeurope-1
-# topology.kubernetes.io/zone=westeurope-2
-# topology.kubernetes.io/zone=westeurope-3
 
 # Check pod is now rescheduled into a node within AZ-2
 
 kubectl get pods -o wide
-# NAME                         READY   STATUS    RESTARTS   AGE   IP           NODE
-# nginx-lrs-5fc6787dff-wk99x   1/1     Running   0          29m   10.244.5.2   aks-nodepool1-49785470-vmss000004
 
 # Verify the node is in availability zone 2
 
 $NODE_NAME=$(kubectl get pods -l app=nginx-lrs -o jsonpath='{.items[0].spec.nodeName}')
 $NODE_NAME
-# aks-nodepool1-49785470-vmss000004
 
 kubectl get nodes $NODE_NAME -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}'
-# westeurope-2
 
 ## Conclusion
 
