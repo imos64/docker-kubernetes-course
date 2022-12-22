@@ -4,7 +4,7 @@
 
 This lab will create a StatfulSet for MySQL database. 
 We will have one primary instance for read/write and many replicas instances for read-only.
-Data is always inserted into primary database then replicated and synchronized using [Percona XtraBackup] (https://github.com/percona/percona-xtrabackup).
+Data is always inserted into primary database then replicated and synchronized using [Percona XtraBackup](https://github.com/percona/percona-xtrabackup).
 
 <img src="images/architecture.png">
 
