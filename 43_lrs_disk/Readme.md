@@ -5,7 +5,7 @@
 ## 0. Setup demo environment
 
 ```powershell
-Set-Alias -Name grep -Value select-string
+Set-Alias -Name grep -Value select-string # if using powershell
 
 # Variables
 $AKS_RG="rg-aks-az"
@@ -14,10 +14,7 @@ $AKS_NAME="aks-cluster"
 # Create and connect to AKS cluster
 az group create --name $AKS_RG --location westeurope
 
-az aks create --name $AKS_NAME `
-              --resource-group $AKS_RG `
-              --node-count 3 `
-              --zones 1 2 3 
+az aks create -n $AKS_NAME -g $AKS_RG --node-count 3 --zones 1 2 3 
 
 az aks get-credentials -n $AKS_NAME -g $AKS_RG --overwrite-existing
 
