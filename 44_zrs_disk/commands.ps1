@@ -19,11 +19,17 @@ kubectl get nodes
 
 ## 1. Deploy a sample deployment with PVC (Azure Disk with zrs)
 
-kubectl apply -f zrs-disk-deploy.yaml
+kubectl apply -f zrs-disk-deploy.yaml -f .\zrs-disk-storage-class.yaml
 
 # Verify resources deployed successfully
 
 kubectl get pods,pv,pvc
+
+# Verify data persisted in the disk
+
+$POD_NAME=$(kubectl get pods -l app=nginx-zrs -o jsonpath='{.items[0].metadata.name}')
+echo $POD_NAME
+kubectl exec $POD_NAME -it -- cat /mnt/azuredisk/outfile
 
 # Check the worker node for the pod
 
@@ -47,15 +53,15 @@ kubectl get nodes $NODE_NAME -o jsonpath='{.metadata.labels.topology\.kubernetes
 
 kubectl describe nodes $NODE_NAME | grep topology.kubernetes.io/zone
 
-## 2. Simulate node failure (delete node)
+## 2. Simulate zone failure (delete or drain nodes in AZ)
 
-kubectl delete node $NODE_NAME
+kubectl drain $NODE_NAME --force --delete-emptydir-data --ignore-daemonsets
 
-# Check the pod will be rescheduled in another node
+## 3. Verify the pod will be rescheduled in another zone
 
-kubectl get pods -o wide
+kubectl get pods -o wide -w
 
-# Thanks to using ZRS Disk, our pod could be resheduled to another availability zone.
+# Thanks to using ZRS Disk, our pod will be resheduled to another availability zone.
 
 # Check the availability zone for that node
 
@@ -65,6 +71,13 @@ echo $NODE_NAME
 
 kubectl describe nodes $NODE_NAME | grep topology.kubernetes.io/zone
 
-# Let's check the data inside the Disk
+## 4. Verify the data inside the Disk
 
-kubectl exec 
+$POD_NAME=$(kubectl get pods -l app=nginx-zrs -o jsonpath='{.items[0].metadata.name}')
+ $ echo $POD_NAME
+# nginx-zrs-566dfd89ff-7kltc
+
+kubectl exec $POD_NAME -it -- cat /mnt/azuredisk/outfile
+# Fri Dec 23 07:41:13 UTC 2022
+# Fri Dec 23 07:41:14 UTC 2022
+# Fri Dec 23 07:41:15 UTC 2022
