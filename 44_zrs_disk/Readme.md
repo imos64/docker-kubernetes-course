@@ -6,6 +6,13 @@ This lab will show how to use an Azure DISK with ZRS feature and how it can be u
 
 <img src="images/architecture.png">
 
+## Lab steps
+0. Setup demo environment
+1. Deploy a sample deployment with PVC (Azure Disk with zrs)
+2. Simulate zone failure (delete or drain nodes in AZ)
+3. Verify the pod will be rescheduled in another zone
+4. Verify the data inside the Disk
+
 ## 0. Setup demo environment
 
 ```powershell
