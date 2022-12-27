@@ -4,7 +4,7 @@ metadata:
   name: zrs-shared-managed-csi
 provisioner: disk.csi.azure.com
 parameters:
-  skuName: Premium_LRS
+  skuName: Premium_ZRS
   maxShares: "3"
   cachingMode: None  # ReadOnly cache is not available for premium SSD with maxShares>1
   # resourceGroup: aks-storage-westeurope
