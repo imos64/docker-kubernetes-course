@@ -77,6 +77,7 @@ kubectl get pods -o wide
 Verify the pods are deployed in multiple availability zones
 
 ```powershell
+Set-Alias -Name grep -Value select-string # if using powershell
 kubectl describe nodes | grep topology.kubernetes.io/zone
 # topology.kubernetes.io/zone=westeurope-1
 # topology.kubernetes.io/zone=westeurope-2
