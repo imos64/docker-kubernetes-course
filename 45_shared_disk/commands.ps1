@@ -1,6 +1,6 @@
 # https://github.com/kubernetes-sigs/azuredisk-csi-driver/blob/master/deploy/example/failover/README.md
 
-# Using Azure Disk in AKS
+# Using Azure Shared Disk in AKS
 
 ## Introduction
 

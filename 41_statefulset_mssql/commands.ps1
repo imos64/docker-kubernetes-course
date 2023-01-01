@@ -1,7 +1,7 @@
 # 0. setup demo environment
 
 # variables
-$AKS_RG="rg-aks-upgrade"
+$AKS_RG="rg-aks-stateful"
 $AKS_NAME="aks-cluster"
 
 # create and connect to AKS cluster
