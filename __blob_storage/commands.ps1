@@ -121,7 +121,7 @@ kubectl get sts,pods,pvc,pv,secret
 # NAME                                                          TYPE     DATA   AGE
 # secret/azure-storage-account-fuse8d87a1d1a8324d7484f-secret   Opaque   2      46m
 
-kubectl get secret azure-storage-account-fuse8d87a1d1a8324d7484f-secret -o yaml
+kubectl get secret -o yaml
 # apiVersion: v1
 # data:
 #   azurestorageaccountkey: RXk4SHVwUURvZGMydjlnTXJ3THN5YmlGMUpsWjdVaVQrcDE4L25RblNwWktoNnNlbk8wYVA1dDFMUmMvWXlDbUFtQ0J2UVJscTlvWitBU3RXd1V5R2c9PQ==
@@ -171,6 +171,18 @@ az storage account list -g $NODE_RG -o table
 # AllowBlobPublicAccess    CreationTime                      EnableHttpsTrafficOnly    Kind              Location    MinimumTlsVersion    Name                     PrimaryLocation    ProvisioningState    ResourceGroup                                  StatusOfPrimary    EnableNfsV3    IsHnsEnabled    PublicNetworkAccess
 # -----------------------  --------------------------------  ------------------------  ----------------  ----------  -------------------  -----------------------  -----------------  -------------------  ---------------------------------------------  -----------------  -------------  --------------  ---------------------
 # False                    2022-12-31T07:29:54.361380+00:00  True                      BlockBlobStorage  westeurope  TLS1_2               nfsd9cc03ad0a2e4bea9bab  westeurope         Succeeded            mc_rg-aks-blob-storage_aks-cluster_westeurope  available          True           True            Enabled
+
+kubectl exec -it statefulset-blob-nfs-0 -- df -h
+# Filesystem                                                                                                       Size  Used Avail Use% Mounted on
+# overlay                                                                                                          124G   23G  102G  19% /
+# tmpfs                                                                                                             64M     0   64M   0% /dev
+# nfs783d52556e8447a681cb.blob.core.windows.net:/nfs783d52556e8447a681cb/pvc-e458e45c-47ca-443f-807a-6b101a9b9614  5.0P     0  5.0P   0% /mnt/azureblob
+# /dev/root                                                                                                        124G   23G  102G  19% /etc/hosts
+# shm                                                                                                               64M     0   64M   0% /dev/shm
+# tmpfs                                                                                                            4.5G   12K  4.5G   1% /run/secrets/kubernetes.io/serviceaccount
+# tmpfs                                                                                                            3.4G     0  3.4G   0% /proc/acpi
+# tmpfs                                                                                                            3.4G     0  3.4G   0% /proc/scsi
+# tmpfs                                                                                                            3.4G     0  3.4G   0% /sys/firmware
 
 kubectl exec -it statefulset-blob-nfs-0 -- cat /mnt/azureblob/data
 # Sun Jan 1 08:08:08 UTC 2023
