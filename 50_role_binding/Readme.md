@@ -397,6 +397,6 @@ kubectl auth can-i get secrets --namespace my-namespace --as user1
 
 Verify with not allowed namespace
 ```powershell
-kubectl auth can-i get secrets --namespace default --as user1
+kubectl auth can-i get pods --namespace default --as user1
 # no
 ```
