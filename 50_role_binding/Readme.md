@@ -383,7 +383,7 @@ kubectl auth can-i get pods --namespace my-namespace --as user3
 # no
 
 kubectl get pods --namespace my-namespace --as user3
-# Error from server (Forbidden): pods is forbidden: User "user3" cannot list resource "pods" in API group "" in the namespace "my-namespace" Error from server (Forbidden): pods is forbidden: User "user3" cannot list resource "pods" in API group "" in the namespace "default"
+# Error from server (Forbidden): pods is forbidden: User "user3" cannot list resource "pods" in API group "" in the namespace "my-namespace"
 ```
 
 Verify with not allowed resource
