@@ -98,6 +98,8 @@ kubectl api-resources
 
 View Kubernetes existing roles
 
+<details><summary>kubectl get roles -A</summary>
+
 ```powershell
 kubectl get roles -A
 # NAMESPACE     NAME                                             CREATED AT
@@ -110,6 +112,7 @@ kubectl get roles -A
 # kube-system   system:controller:token-cleaner                  2023-01-01T17:52:17Z
 # kube-system   system:metrics-server                            2023-01-01T17:52:40Z
 ```
+</details>
 
 <details><summary>kubectl get clusterroles -A</summary>
 
@@ -195,6 +198,8 @@ kubectl get clusterroles -A
 
 View Kubernetes existing rolebindings
 
+<details><summary>kubectl get rolebindings -A</summary>
+
 ```powershell
 kubectl get rolebindings -A
 # NAMESPACE     NAME                                                ROLE                                                  AGE
@@ -209,6 +214,7 @@ kubectl get rolebindings -A
 # kube-system   system:controller:cloud-provider                    Role/system:controller:cloud-provider                 3h40m
 # kube-system   system:controller:token-cleaner                     Role/system:controller:token-cleaner                  3h40m
 ```
+</details>
 
 <details><summary>kubectl get clusterrolebindings -A</summary>
 
