@@ -63,10 +63,10 @@ kubectl create deployment nginx --image=nginx -n my-namespace --replicas=2 # as 
 kubectl get pods --namespace my-namespace --as system:serviceaccount:my-namespace:my-service-account
 
 # Verify with not allowed namespace
-kubectl auth can-i get secrets --namespace default --as system:serviceaccount:my-namespace:my-service-account
+kubectl auth can-i get pods --namespace default --as system:serviceaccount:my-namespace:my-service-account
 
 # Verify with not allowed resource
-kubectl get secrets --namespace default --as system:serviceaccount:my-namespace:my-service-account
+kubectl get secrets --namespace my-namespace --as system:serviceaccount:my-namespace:my-service-account
 
 ## 6. Accessing the API Server REST API from a Pod
 
@@ -112,7 +112,7 @@ CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 cat $CACERT
 
 # Explore the API with TOKEN
-curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
+curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET https://kubernetes.default.svc/api
 
 # Get the pods from API Server REST endpoint 
 curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET https://kubernetes.default.svc/api/v1/namespaces/my-namespace/pods

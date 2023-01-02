@@ -125,14 +125,14 @@ kubectl get pods --namespace my-namespace --as system:serviceaccount:my-namespac
 Verify with not allowed namespace
 
 ```powershell
-kubectl auth can-i get secrets --namespace default --as system:serviceaccount:my-namespace:my-service-account
+kubectl auth can-i get pods --namespace default --as system:serviceaccount:my-namespace:my-service-account
 # no
 ```
 
 Verify with not allowed resource
 
 ```powershell
-kubectl get secrets --namespace default --as system:serviceaccount:my-namespace:my-service-account
+kubectl get secrets --namespace my-namespace --as system:serviceaccount:my-namespace:my-service-account
 # Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:my-namespace:my-service-account" cannot list resource "secrets" in API group "" in the namespace "default"
 ```
 
@@ -235,7 +235,7 @@ cat $CACERT
 # -----END CERTIFICATE-----
 
 # Explore the API with TOKEN
-curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
+curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET https://kubernetes.default.svc/api
 # {
 #     "kind": "APIVersions",
 #     "versions": [
