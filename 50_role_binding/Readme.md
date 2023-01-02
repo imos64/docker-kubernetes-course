@@ -31,6 +31,7 @@ kubectl get nodes
 <details><summary>kubectl api-resources</summary>
 
 ```powershell
+kubectl api-resources
 # NAME                              SHORTNAMES          APIVERSION                             NAMESPACED   KIND
 # bindings                                              v1                                     true         Binding
 # componentstatuses                 cs                  v1                                     false        ComponentStatus
@@ -110,6 +111,8 @@ kubectl get roles -A
 # kube-system   system:metrics-server                            2023-01-01T17:52:40Z
 ```
 
+<details><summary>kubectl get clusterroles -A</summary>
+
 ```powershell
 kubectl get clusterroles -A
 # NAME                                                                   CREATED AT
@@ -188,9 +191,11 @@ kubectl get clusterroles -A
 # system:volume-scheduler                                                2023-01-01T17:52:16Z
 # view                                                                   2023-01-01T17:52:15Z
 ```
+</details>
 
 View Kubernetes existing rolebindings
 
+```powershell
 kubectl get rolebindings -A
 # NAMESPACE     NAME                                                ROLE                                                  AGE
 # default       pod-reader-binding                                  Role/pod-reader                                       11m
@@ -203,7 +208,11 @@ kubectl get rolebindings -A
 # kube-system   system:controller:bootstrap-signer                  Role/system:controller:bootstrap-signer               3h40m
 # kube-system   system:controller:cloud-provider                    Role/system:controller:cloud-provider                 3h40m
 # kube-system   system:controller:token-cleaner                     Role/system:controller:token-cleaner                  3h40m
+```
 
+<details><summary>kubectl get clusterrolebindings -A</summary>
+
+```powershell
 kubectl get clusterrolebindings -A
 # NAME                                                   ROLE                                                                               AGE
 # aks-cluster-admin-binding                              ClusterRole/cluster-admin                                                          3h40m
@@ -269,12 +278,19 @@ kubectl get clusterrolebindings -A
 # system:public-info-viewer                              ClusterRole/system:public-info-viewer                                              3h40m
 # system:service-account-issuer-discovery                ClusterRole/system:service-account-issuer-discovery                                3h40m
 # system:volume-scheduler                                ClusterRole/system:volume-scheduler                                                3h40m
+```
+</details>
 
 ## 2. Using Role and RoleBinding to assign roles to users and groups
 
+```powershell
 kubectl create namespace my-namespace
 # namespace/my-namespace created
+```
 
+Create a role for only listing pods
+
+```powershell
 kubectl create role pod-reader-role --verb=get --verb=list --verb=watch --resource=pods -n my-namespace -o yaml --dry-run=client > pod-reader-role.yaml
 
 cat pod-reader-role.yaml
@@ -295,8 +311,11 @@ cat pod-reader-role.yaml
 #   - watch
 
 kubectl apply -f pod-reader-role.yaml
+```
 
-# Create a role binding for user1, user2, and group1 using the pod reader role
+## 3. Create a role binding for user1, user2, and group1 using the pod reader role
+
+```powershell
 kubectl create rolebinding user-pod-reader-binding --role=pod-reader-role --user=user1 --user=user2 --group=group1 -n my-namespace -o yaml --dry-run=client > user-pod-reader-binding.yaml
 
 cat user-pod-reader-binding.yaml
@@ -321,9 +340,13 @@ cat user-pod-reader-binding.yaml
 
 kubectl apply -f user-pod-reader-binding.yaml
 # rolebinding.rbac.authorization.k8s.io/user-pod-reader-binding created
+```
 
-## 3. Verify user access using impersonation
+## 4. Verify user access using impersonation
 
+Check with the right action, namespace and user
+
+```powershell
 kubectl auth can-i get pods --namespace my-namespace --as user1
 # yes
 
@@ -334,18 +357,27 @@ kubectl get pods --namespace my-namespace --as user1
 # NAME                    READY   STATUS    RESTARTS   AGE
 # nginx-76d6c9b8c-vgbmg   1/1     Running   0          9s
 # nginx-76d6c9b8c-wst6z   1/1     Running   0          9s
+```
 
-# Verify with not allowed user
+Verify with not allowed user
+
+```powershell
 kubectl auth can-i get pods --namespace my-namespace --as user3
 # no
 
 kubectl get pods --namespace my-namespace --as user3
 # Error from server (Forbidden): pods is forbidden: User "user3" cannot list resource "pods" in API group "" in the namespace "my-namespace" Error from server (Forbidden): pods is forbidden: User "user3" cannot list resource "pods" in API group "" in the namespace "default"
+```
 
-# Verify with not allowed resource
+Verify with not allowed resource
+
+```powershell
 kubectl auth can-i get secrets --namespace my-namespace --as user1
 # no
+```
 
-# Verify with not allowed namespace
+Verify with not allowed namespace
+```powershell
 kubectl auth can-i get secrets --namespace default --as user1
 # no
+```
