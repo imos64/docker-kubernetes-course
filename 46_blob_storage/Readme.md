@@ -223,4 +223,10 @@ kubectl exec -it statefulset-blob-nfs-0 -- cat /mnt/azureblob/data
 # Sun Jan 1 08:10:09 UTC 2023
 ```
 
+What if I scale the Statefulset
+
+```powershell
+kubectl scale statefulset statefulset-blob-nfs --replicas=3
+```
+
 Azure Blob CSI driver only supports NFS 3.0 protocol for Kubernetes versions 1.25 (preview) on AKS.
