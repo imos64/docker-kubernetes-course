@@ -1,4 +1,4 @@
-# Using Kubernetes Service Account
+# Kubernetes Service Account
 
 ## Introduction
 
