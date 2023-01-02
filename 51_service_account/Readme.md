@@ -177,8 +177,8 @@ kubectl get pods -n my-namespace
 
 Get the pods using '-v 6' to show the REST API endpoint
 
-kubectl get pods -n my-namespace -v 6
 ```powershell
+kubectl get pods -n my-namespace -v 6
 # I0102 14:00:00.646208   18948 loader.go:373] Config loaded from file:  C:\Users\hodellai\.kube\config
 # I0102 14:00:00.777184   18948 round_trippers.go:553] GET https://aks-cluste-rg-aks-serviceac-82f6d7-886ac5f4.hcp.westeurope.azmk8s.io:443/api/v1/namespaces/my-namespace/pods?limit=500 200 OK in 94 milliseconds
 # NAME                        READY   STATUS    RESTARTS   AGE
