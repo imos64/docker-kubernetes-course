@@ -2,8 +2,8 @@
 
 ## Introduction
 
-# Kubernetes exposes a REST API to manage its objects like pods, deployments, services, secrets, ingress, etc.
-# It uses the RBAC model to create and assign roles to users, groups and service accounts.
+Kubernetes exposes a REST API to manage its objects like pods, deployments, services, secrets, ingress, etc.
+It uses the RBAC model to create and assign roles to users, groups and service accounts.
 
 ## 0. Setup demo environment
 
