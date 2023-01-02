@@ -342,6 +342,17 @@ kubectl apply -f user-pod-reader-binding.yaml
 # rolebinding.rbac.authorization.k8s.io/user-pod-reader-binding created
 ```
 
+Verify the created role and role binding
+
+```powershell
+kubectl get role,rolebinding -n my-namespace
+# NAME                                             CREATED AT
+# role.rbac.authorization.k8s.io/pod-reader-role   2023-01-02T11:00:29Z
+# 
+# NAME                                                            ROLE                   AGE
+# rolebinding.rbac.authorization.k8s.io/user-pod-reader-binding   Role/pod-reader-role   22m
+```
+
 ## 4. Verify user access using impersonation
 
 Check with the right action, namespace and user
