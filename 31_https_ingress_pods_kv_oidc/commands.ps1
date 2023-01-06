@@ -2,7 +2,7 @@
 
 # 1. Create an AKS cluster with Secret Store CSI and Workload Identity enabled
 
-$AKS_RG="rg-aks-demo"
+$AKS_RG="rg-aks-cluster"
 $AKS_NAME="aks-cluster"
 
 az group create -n $AKS_RG -l westeurope
@@ -54,7 +54,7 @@ openssl pkcs12 -export -in aks-ingress-tls.crt -inkey aks-ingress-tls.key -out "
 
 # 3. Create a Keyvault instance
 
-$AKV_NAME="akvaksapp0137"
+$AKV_NAME="akvaksapp0139"
 
 az keyvault create -n $AKV_NAME -g $AKS_RG --enable-rbac-authorization
 
@@ -105,7 +105,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: $USER_ASSIGNED_CLIENT_ID
+    azure.workload.identity/client-id: $IDENTITY_CLIENT_ID
   labels:
     azure.workload.identity/use: "true"
   name: $SERVICE_ACCOUNT_NAME
@@ -217,6 +217,13 @@ sleep 5 # wait for pods to be deployed
 
 kubectl get pods,svc -n $NAMESPACE_APP
 
+# Check the mounted Secret Store CSI volume with the secret file
+
+$POD_NAME=$(kubectl get pods -l app=app-deploy -n $NAMESPACE_APP -o jsonpath='{.items[0].metadata.name}')
+echo $POD_NAME
+
+kubectl exec $POD_NAME -n $NAMESPACE_APP -it -- ls /mnt/secrets-store
+
 # the secret should have been deployed
 kubectl describe secret $TLS_SECRET -n $NAMESPACE_APP
 
@@ -276,18 +283,18 @@ az network public-ip update --ids $AZURE_PUBLIC_IP_ID --dns-name $DNS_NAME
 $DOMAIN_NAME_FQDN=$(az network public-ip show --ids $AZURE_PUBLIC_IP_ID --query='dnsSettings.fqdn' -o tsv)
 echo $DOMAIN_NAME_FQDN
 
-# 10.2. Option 2: Name to associate with Azure DNS Zone
+# # 10.2. Option 2: Name to associate with Azure DNS Zone
 
-# Add an A record to your DNS zone
-az network dns record-set a add-record `
-    --resource-group rg-houssem-cloud-dns `
-    --zone-name "houssem.cloud" `
-    --record-set-name "*" `
-    --ipv4-address $INGRESS_PUPLIC_IP
+# # Add an A record to your DNS zone
+# az network dns record-set a add-record `
+#     --resource-group rg-houssem-cloud-dns `
+#     --zone-name "houssem.cloud" `
+#     --record-set-name "*" `
+#     --ipv4-address $INGRESS_PUPLIC_IP
 
-# az network public-ip update -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --dns-name $DNS_NAME
-$DOMAIN_NAME_FQDN=$DNS_NAME.houssem.cloud
-echo $DOMAIN_NAME_FQDN
+# # az network public-ip update -g MC_rg-aks-we_aks-cluster_westeurope -n kubernetes-af54fcf50c6b24d7fbb9ed6aa62bdc77 --dns-name $DNS_NAME
+# $DOMAIN_NAME_FQDN=$DNS_NAME.houssem.cloud
+# echo $DOMAIN_NAME_FQDN
 
 # 11. Deploy Ingress resource taht will retrieve TLS certificate from secret
 

@@ -182,7 +182,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: $USER_ASSIGNED_CLIENT_ID
+    azure.workload.identity/client-id: $IDENTITY_CLIENT_ID
   labels:
     azure.workload.identity/use: "true"
   name: $SERVICE_ACCOUNT_NAME
@@ -329,6 +329,31 @@ kubectl get pods,svc -n $NAMESPACE_APP
 # NAME                         TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
 # service/aks-helloworld-one   ClusterIP   10.0.206.22   <none>        80/TCP    32s
 # service/aks-helloworld-two   ClusterIP   10.0.176.49   <none>        80/TCP    32s
+```
+
+Check the mounted Secret Store CSI volume with the secret file
+
+```powershell
+$POD_NAME=$(kubectl get pods -l app=app-deploy -n $NAMESPACE_APP -o jsonpath='{.items[0].metadata.name}')
+echo $POD_NAME
+# app-deploy-5bf5ddd8b5-chbk6
+
+kubectl exec $POD_NAME -n $NAMESPACE_APP -it -- ls /mnt/secrets-store
+aks-ingress-cert
+
+kubectl exec $POD_NAME -n $NAMESPACE_APP -it -- cat /mnt/secrets-store/aks-ingress-cert
+# -----BEGIN PRIVATE KEY-----
+# MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDRCLOabqmJwg+H
+# yAQm9jLz0UBw09cdR9aqqsY+HCIy7PvpucrYn4qqW48HYP6S6CCUJEFvp8T3YyA0
+# ...
+# 8wP1JpXYTlgVnm6l4tFKZQ==
+# -----END PRIVATE KEY-----
+# -----BEGIN CERTIFICATE-----
+# MIIDxzCCAq+gAwIBAgIUH3mg/xZQNa6i0j0Rdr8Y69tvKT8wDQYJKoZIhvcNAQEL
+# BQAwVDE4MDYGA1UEAwwvYWtzLWFwcC0wNy1sb3JlYWwud2VzdGV1cm9wZS5jbG91
+# ...
+# 6RZTTToiRgfCXPU=
+# -----END CERTIFICATE-----
 ```
 
 Check the secret should have been created by the deployment
