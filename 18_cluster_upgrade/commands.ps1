@@ -5,8 +5,8 @@ $AKS_RG="rg-aks-dev-07"
 
 az aks get-versions -l westeurope -o table
 
-$VERSION_OLD="1.21.7"
-$VERSION_NEW="1.22.4"
+$VERSION_OLD="1.24.6"
+$VERSION_NEW="1.25.2"
 
 # create and connect to cluster
 az group create --name $AKS_RG `
@@ -14,7 +14,7 @@ az group create --name $AKS_RG `
                 
 az aks create --name $AKS_NAME `
               --resource-group $AKS_RG `
-              --node-count 2 `
+              --node-count 3 `
               --kubernetes-version $VERSION_OLD `
               --generate-ssh-keys
 
