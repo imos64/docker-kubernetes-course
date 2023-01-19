@@ -53,7 +53,7 @@ kubectl get nodes
 # aks-nodepool1-35380384-vmss000002   Ready    agent   64s   v1.25.4
 ```
 
-## Verify the blob driver (DaemonSet) was installed
+Verify the blob driver (DaemonSet) was installed
 
 ```powershell
 Set-Alias -Name grep -Value select-string # if using powershell
