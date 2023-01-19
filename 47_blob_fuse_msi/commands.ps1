@@ -118,7 +118,7 @@ spec:
 
 # Deploy the app
 
-kubectl apply -f .
+kubectl apply -f pv-blobfuse.yaml -f pvc-blobfuse.yaml -f nginx-pod-blob.yaml
 # deployment.apps/nginx-app created
 # service/nginx-app created
 # persistentvolume/pv-blob created
