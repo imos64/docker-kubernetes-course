@@ -98,6 +98,18 @@ az storage blob upload `
            --account-key $STORAGE_ACCOUNT_KEY
 ```
 
+
+## Assign admin role to my self
+
+```powershell
+$CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
+$STORAGE_ACCOUNT_ID=$(az storage account show -n $STORAGE_ACCOUNT_NAME --query id)
+
+az role assignment create --assignee $CURRENT_USER_ID `
+        --role "Storage Account Contributor" `
+        --scope $STORAGE_ACCOUNT_ID
+```
+
 Verify the resources are created on the Azure portal.
 
 <img src="images\blob.png"/>

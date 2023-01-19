@@ -25,13 +25,15 @@ kubectl get nodes
 Set-Alias -Name grep -Value select-string # if using powershell
 kubectl get pods -n kube-system | grep csi
 
+# Create Storage Account 
+
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $AKS_RG -l westeurope --sku Premium_ZRS --kind BlockBlobStorage
 
 # Create a SA container
 
 az storage container create --account-name $STORAGE_ACCOUNT_NAME -n $CONTAINER_NAME
 
-# upload a file into the SA container
+# Upload a file into the SA container
 
 $STORAGE_ACCOUNT_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT_NAME --query '[0].value' -o tsv)
 
@@ -43,6 +45,15 @@ az storage blob upload `
            --auth-mode key `
            --account-key $STORAGE_ACCOUNT_KEY
 
+# Assign admin role to my self
+
+$CURRENT_USER_ID=$(az ad signed-in-user show --query id -o tsv)
+$STORAGE_ACCOUNT_ID=$(az storage account show -n $STORAGE_ACCOUNT_NAME --query id)
+
+az role assignment create --assignee $CURRENT_USER_ID `
+        --role "Storage Account Contributor" `
+        --scope $STORAGE_ACCOUNT_ID
+
 # Verify the resources are created on the Azure portal
 
 # Create Managed Identity
@@ -52,7 +63,6 @@ az identity create -g $AKS_RG -n $IDENTITY_NAME
 # Assign RBAC role
 
 $IDENTITY_CLIENT_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "clientId" -o tsv)
-$STORAGE_ACCOUNT_ID=$(az storage account show -n $STORAGE_ACCOUNT_NAME --query id)
 
 az role assignment create --assignee $IDENTITY_CLIENT_ID `
         --role "Storage Blob Data Owner" `

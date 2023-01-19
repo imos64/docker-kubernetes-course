@@ -16,8 +16,6 @@ spec:
   csi:
     driver: blob.csi.azure.com
     readOnly: false
-    # make sure volumeid is unique for every identical storage blob container in the cluster
-    # character `#` is reserved for internal use and cannot be used in volumehandle
     volumeHandle: storage4aks013-container01
     volumeAttributes:
       resourceGroup: rg-aks-cluster
@@ -25,13 +23,13 @@ spec:
       containerName: "container01"
       # refer to https://github.com/Azure/azure-storage-fuse#environment-variables
       AzureStorageAuthType: MSI  # key, sas, msi, spn
-      # AzureStorageIdentityClientID:
-      # AzureStorageIdentityObjectID:
+      AzureStorageIdentityClientID: ""
+      AzureStorageIdentityObjectID: ""
       AzureStorageIdentityResourceID: "/subscriptions/82f6d75e-85f4-434a-xxxxxxxxx/resourcegroups/rg-aks-cluster/providers/Microsoft.ManagedIdentity/userAssignedIdentities/identity-storage-account"
-      # MSIEndpoint:
-      # AzureStorageSPNClientID:
-      # AzureStorageSPNTenantID:
-      # AzureStorageAADEndpoint:
-    # nodeStageSecretRef:
-    #   name: azure-secret
-    #   namespace: default
+      MSIEndpoint: ""
+      AzureStorageSPNClientID: ""
+      AzureStorageSPNTenantID: ""
+      AzureStorageAADEndpoint: ""
+    nodeStageSecretRef:
+      name: azure-secret
+      namespace: default
