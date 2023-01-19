@@ -2,6 +2,20 @@ Using Azure Blob Fuse with Managed Identity in AKS
 
 ## Introduction
 
+In this lab, we will attach an Azure Blob Fuse to an AKS pod.
+This could be done either dynamically or statically.
+Dynamically means that AKS will create and manage automatically the storage account and blobs.
+Static creation means we can bring our own storage account and blobs.
+But with this option we need to configure the authentication and authorization.
+
+The available options are:
+1. Azure Storage Account key
+2. Azure Storage Account key SAS Token
+3. Azure Service Principal (SPN)
+4. Azure Managed Identity
+
+We will explore the latter option using Managed Identity.
+
 ## 0. Setup demo environment
 
 ```powershell
@@ -158,8 +172,8 @@ kubectl get pods,svc,pvc,pv
 # NAME                             STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS             AGE
 # persistentvolumeclaim/pvc-blob   Bound    pv-blob   100Gi      RWX            azureblob-fuse-premium   85m
 
-# NAME                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS             REASON   AGE
-# persistentvolume/pv-blob   100Gi      RWX            Retain           Bound    default/pvc-blob   azureblob-fuse-premium            85m
+# NAME                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS          
+# persistentvolume/pv-blob   100Gi      RWX            Retain           Bound    default/pvc-blob   azureblob-fuse-premium
 ```
 
 ## 7. Verify the Blob storage mounted successfully
@@ -185,6 +199,6 @@ kubectl exec -it $POD_NAME -- ls /usr/share/nginx/html
 
 Navigate to http://<PUBLIC_SERVICE_IP>/blobfile.html to view web app running the uploaded blobfile.html file.
 
-# Additional resources
-# src: https://github.com/qxsch/Azure-Aks/tree/master/aks-blobfuse-mi
-# src: https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/driver-parameters.md
+## Additional resources
+Src: https://github.com/qxsch/Azure-Aks/tree/master/aks-blobfuse-mi
+Src: https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/driver-parameters.md
