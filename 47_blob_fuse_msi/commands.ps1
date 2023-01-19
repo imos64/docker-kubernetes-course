@@ -19,25 +19,11 @@ az aks create --name $AKS_NAME --resource-group $AKS_RG --node-count 3 --zones 1
 az aks get-credentials -n $AKS_NAME -g $AKS_RG --overwrite-existing
 
 kubectl get nodes
-# NAME                                STATUS   ROLES   AGE   VERSION
-# aks-nodepool1-35380384-vmss000000   Ready    agent   66s   v1.25.4
-# aks-nodepool1-35380384-vmss000001   Ready    agent   62s   v1.25.4
-# aks-nodepool1-35380384-vmss000002   Ready    agent   64s   v1.25.4
 
 # Verify the blob driver (DaemonSet) was installed
 
 Set-Alias -Name grep -Value select-string # if using powershell
 kubectl get pods -n kube-system | grep csi
-# csi-azuredisk-node-jl665              3/3     Running   0          6m36s
-# csi-azuredisk-node-wwxsx              3/3     Running   0          6m34s
-# csi-azuredisk-node-z2zmt              3/3     Running   0          6m32s
-# csi-azurefile-node-dcgbb              3/3     Running   0          6m34s
-# csi-azurefile-node-trgpv              3/3     Running   0          6m32s
-# csi-azurefile-node-xrz9r              3/3     Running   0          6m36s
-# csi-blob-node-c6v6n                   3/3     Running   0          6m34s
-# csi-blob-node-hmssr                   3/3     Running   0          6m32s
-# csi-blob-node-wvqcp                   3/3     Running   0          6m36s
-# Create Storage Account
 
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $AKS_RG -l westeurope --sku Premium_ZRS --kind BlockBlobStorage
 
@@ -67,10 +53,6 @@ az identity create -g $AKS_RG -n $IDENTITY_NAME
 
 $IDENTITY_CLIENT_ID=$(az identity show -g $AKS_RG -n $IDENTITY_NAME --query "clientId" -o tsv)
 $STORAGE_ACCOUNT_ID=$(az storage account show -n $STORAGE_ACCOUNT_NAME --query id)
-
-# az role assignment create --assignee $IDENTITY_CLIENT_ID `
-#         --role "Contributor" `
-#         --scope $STORAGE_ACCOUNT_ID
 
 az role assignment create --assignee $IDENTITY_CLIENT_ID `
         --role "Storage Blob Data Owner" `
@@ -119,43 +101,16 @@ spec:
 # Deploy the app
 
 kubectl apply -f pv-blobfuse.yaml -f pvc-blobfuse.yaml -f nginx-pod-blob.yaml
-# deployment.apps/nginx-app created
-# service/nginx-app created
-# persistentvolume/pv-blob created
-# persistentvolumeclaim/pvc-blob created
 
 kubectl get pods,svc,pvc,pv
-# NAME                             READY   STATUS    RESTARTS   AGE
-# pod/nginx-app-55d47d67fd-ppstp   1/1     Running   0          85m
-
-# NAME                 TYPE           CLUSTER-IP   EXTERNAL-IP      PORT(S)        AGE
-# service/kubernetes   ClusterIP      10.0.0.1     <none>           443/TCP        102m
-# service/nginx-app    LoadBalancer   10.0.17.50   20.234.250.254   80:31990/TCP   85m
-
-# NAME                             STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS             AGE
-# persistentvolumeclaim/pvc-blob   Bound    pv-blob   100Gi      RWX            azureblob-fuse-premium   85m
-
-# NAME                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS             REASON   AGE
-# persistentvolume/pv-blob   100Gi      RWX            Retain           Bound    default/pvc-blob   azureblob-fuse-premium            85m
 
 # verify the Blob storage mounted
 
 $POD_NAME=$(kubectl get pods -l app=nginx-app -o jsonpath='{.items[0].metadata.name}')
 
 kubectl exec -it $POD_NAME -- df -h
-# Filesystem      Size  Used Avail Use% Mounted on
-# overlay         124G   23G  102G  19% /
-# tmpfs            64M     0   64M   0% /dev
-# shm              64M     0   64M   0% /dev/shm
-# /dev/root       124G   23G  102G  19% /etc/hosts
-# blobfuse2       124G   23G  102G  19% /usr/share/nginx/html
-# tmpfs           4.5G   12K  4.5G   1% /run/secrets/kubernetes.io/serviceaccount
-# tmpfs           3.4G     0  3.4G   0% /proc/acpi
-# tmpfs           3.4G     0  3.4G   0% /proc/scsi
-# tmpfs           3.4G     0  3.4G   0% /sys/firmware
 
 kubectl exec -it $POD_NAME -- ls /usr/share/nginx/html
-# blobfile.html
 
 # Navigate to http://<PUBLIC_SERVICE_IP>/blobfile.html to view web app running the uploaded blobfile.html file.
 
