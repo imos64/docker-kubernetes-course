@@ -7,6 +7,6 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 10Gi
+      storage: 100Gi
   volumeName: pv-blob
   storageClassName: azureblob-fuse-premium
