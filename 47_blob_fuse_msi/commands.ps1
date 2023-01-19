@@ -154,6 +154,11 @@ kubectl exec -it $POD_NAME -- df -h
 # tmpfs           3.4G     0  3.4G   0% /proc/scsi
 # tmpfs           3.4G     0  3.4G   0% /sys/firmware
 
+kubectl exec -it $POD_NAME -- ls /usr/share/nginx/html
+# blobfile.html
+
+# Navigate to http://<PUBLIC_SERVICE_IP>/blobfile.html to view web app running the uploaded blobfile.html file.
+
 # Additional resources
 # src: https://github.com/qxsch/Azure-Aks/tree/master/aks-blobfuse-mi
 # src: https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/driver-parameters.md
