@@ -15,6 +15,17 @@ The available options are:
 4. Azure Managed Identity
 
 We will explore the latter option using Managed Identity.
+We will go through these steps:
+
+0. Setup demo environment
+1. Create Storage Account with type BlockBlobStorage
+2. Create Managed Identity
+3. Assign RBAC role
+4. Attach Managed Identity to AKS VMSS (System nodepool only recommended)
+5. Configure Persistent Volume (PV) with managed identity
+6. Deploy the application
+7. Verify the Blob storage mounted successfully
+
 
 ## 0. Setup demo environment
 
@@ -59,7 +70,7 @@ kubectl get pods -n kube-system | grep csi
 ```
 
 
-# 1. Create Storage Account with type BlockBlobStorage
+## 1. Create Storage Account with type BlockBlobStorage
 
 ```powershell
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $AKS_RG -l westeurope --sku Premium_ZRS --kind BlockBlobStorage
@@ -148,7 +159,7 @@ spec:
 "@ > pv-blobfuse.yaml
 ```
 
-# 6. Deploy the application
+## 6. Deploy the application
 
 ```powershell
 kubectl apply -f .
@@ -200,5 +211,5 @@ kubectl exec -it $POD_NAME -- ls /usr/share/nginx/html
 Navigate to http://<PUBLIC_SERVICE_IP>/blobfile.html to view web app running the uploaded blobfile.html file.
 
 ## Additional resources
-Src: https://github.com/qxsch/Azure-Aks/tree/master/aks-blobfuse-mi
+Src: https://github.com/qxsch/Azure-Aks/tree/master/aks-blobfuse-mi  
 Src: https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/driver-parameters.md
