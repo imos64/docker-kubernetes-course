@@ -10,16 +10,17 @@ The objective of this lab is to use CoreDNS to provide custom domain names insid
 We can replace the service named `myapp.default.svc.cluster.local` to something like `mayapp.aks.com`.
 
 ```shell
-kubectl get pods -n kube-system -l=k8s-app=kube-dns
-# NAME                       READY   STATUS    RESTARTS   AGE
-# coredns-77f75ff65d-sx9mf   1/1     Running   0          85m
-# coredns-77f75ff65d-z7f52   1/1     Running   0          89m
+kubectl get pods,service,configmap -n kube-system -l=k8s-app=kube-dns
+# NAME                           READY   STATUS    RESTARTS   AGE
+# pod/coredns-77f75ff65d-jzhl4   1/1     Running   0          98m
+# pod/coredns-77f75ff65d-qm7th   1/1     Running   0          98m
 
-kubectl get configmap -n kube-system -l=k8s-app=kube-dns
-# NAME                                 DATA   AGE
-# coredns                              1      88m
-# coredns-autoscaler                   1      83m
-# coredns-custom                       0      88m
+# NAME               TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)         AGE
+# service/kube-dns   ClusterIP   10.0.0.10    <none>        53/UDP,53/TCP   3h38m
+
+# NAME                       DATA   AGE
+# configmap/coredns          1      3h38m
+# configmap/coredns-custom   1      3h38m
 ```
 
 CoreDNS configuration is saved into a configmap.
