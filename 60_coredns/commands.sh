@@ -1,3 +1,5 @@
+# Custom domain names using Kubernetes CoreDNS
+
 kubectl get pods -n kube-system -l=k8s-app=kube-dns
 # NAME                       READY   STATUS    RESTARTS   AGE
 # coredns-77f75ff65d-sx9mf   1/1     Running   0          85m
