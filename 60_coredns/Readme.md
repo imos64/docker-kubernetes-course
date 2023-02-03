@@ -171,3 +171,17 @@ kubectl exec -it nginx -- curl http://nginx.aks.com
 ```
 
 And it works !
+
+Let us understand how that works.
+
+```shell
+kubectl exec -it nginx -- apt-get update
+kubectl exec -it nginx -- apt-get install dnsutils -y
+
+kubectl exec -it nginx -- nslookup nginx.aks.com
+# Server:         10.0.0.10
+# Address:        10.0.0.10#53
+
+# Name:   nginx.default.svc.cluster.local
+# Address: 10.0.117.180
+```
