@@ -163,10 +163,10 @@ Let us try resolving with '.aks.com'
 
 ```shell
 kubectl exec -it nginx -- curl http://nginx.aks.com
-<!DOCTYPE html>
-<html>
-<head>
-<title>Welcome to nginx!</title>
+# <!DOCTYPE html>
+# <html>
+# <head>
+# <title>Welcome to nginx!</title>
 ```
 
 And it works !
