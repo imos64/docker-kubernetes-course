@@ -140,6 +140,10 @@ kubectl describe secret app01-tls-cert-secret
 
 ## 4. Create a deployment consuming the TLS certificate
 
+We will use a pod that is configured to access TLS certificate through environment variables. The Dockerfile is available here:
+
+https://github.com/GoogleCloudPlatform/kubernetes-engine-samples/tree/main/hello-app-tls
+
 ```shell
 kubectl apply -f app-deploy-svc.yaml
 kubectl get pod,svc
