@@ -1,12 +1,12 @@
-# Encrypting Pod to Pod communication using TLS certificates with Cert Manager and Let's Encrypt
+# Encrypting Pod to Pod communication using TLS certificates with Cert Manager
 
 In this lab we will secure pod to pod communication using `TLS certificates`.
 The TLS certificate will be generated using `Cert-Manager`. 
-Cert-Manager will request a TLS certificate from `Let's Encrypt`.
-Then it will save it into Kubernetes secret.
+Then Cert-Manager will save it into Kubernetes secret.
 The pod will consume this TLS certificate through environment variables.
 
-In this demo, we just use self-signed certificate for simplicity.
+In this demo, we just use self-signed certificate for simplicity. 
+But Cert-Manager can request a TLS certificate from `Let's Encrypt`.
 
 For production workloads, follow the official guide: https://cert-manager.io/docs/tutorials/getting-started-aks-letsencrypt/
 
