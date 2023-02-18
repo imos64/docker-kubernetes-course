@@ -1,4 +1,4 @@
-# Encrypting Pod to Pod communication using TLS certificates with Cert Manager
+# Encrypting Pod to Pod traffic using TLS certificates with Cert Manager
 
 In this lab we will secure pod to pod communication using `TLS certificates`.
 The TLS certificate will be generated using `Cert-Manager`. 
