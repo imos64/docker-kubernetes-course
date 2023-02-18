@@ -6,11 +6,14 @@ Cert-Manager will request a TLS certificate from `Let's Encrypt`.
 Then it will save it into Kubernetes secret.
 The pod will consume this TLS certificate through environment variables.
 
+In this demo, we just use self-signed certificate for simplicity.
+For production workloads, follow the official guide: https://cert-manager.io/docs/tutorials/getting-started-aks-letsencrypt/
+
 The steps for the lab:
 1. Create an AKS cluster
 2. Install Cert Manager into AKS
-3. Create a ClusterIssuer and a Certificate
-4. Create a deployment with TLS certificate
+3. Create a ClusterIssuer and a self-signed Certificate
+4. Create a deployment consuming the TLS certificate
 5. Verify the TLS configuration
 
 ## 1. Create an AKS cluster
@@ -91,7 +94,7 @@ kubectl get all -n cert-manager
 # replicaset.apps/cert-manager-webhook-6787f645b9      1         1         1       36s
 ```
 
-## 3. Create a ClusterIssuer and a Certificate
+## 3. Create a ClusterIssuer and a self-signed Certificate
 
 ```shell
 kubectl apply -f clusterissuer-selfsigned.yaml
@@ -134,7 +137,7 @@ kubectl describe secret app01-tls-cert-secret
 # tls.key:  1675 bytes
 ```
 
-## 4. Create a deployment with TLS certificate
+## 4. Create a deployment consuming the TLS certificate
 
 ```shell
 kubectl apply -f app-deploy-svc.yaml
