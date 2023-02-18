@@ -7,6 +7,7 @@ Then it will save it into Kubernetes secret.
 The pod will consume this TLS certificate through environment variables.
 
 In this demo, we just use self-signed certificate for simplicity.
+
 For production workloads, follow the official guide: https://cert-manager.io/docs/tutorials/getting-started-aks-letsencrypt/
 
 The steps for the lab:
