@@ -57,4 +57,4 @@ spec:
       resources:
         requests:
           storage: 1Gi
-      storageClassName: managed-csi # default
+      storageClassName: manual # default
